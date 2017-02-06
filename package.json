@@ -1,0 +1,21 @@
+{
+  "name": "sinput",
+  "description": "A search input plugin",
+  "version": "1.0.0",
+  "author": "xovel <xovel@vip.qq.com>",
+
+  "homepage": "https://github.com/xovel/sinput/",
+  "keywords": [
+    "sinput",
+    "input",
+    "search"
+  ],
+  "license": "MIT",
+
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-clean": "^0.3.2",
+    "gulp-uglify": "^1.5.3",
+    "gulp-rename": "^1.2.2"
+  }
+}
