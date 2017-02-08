@@ -1,5 +1,5 @@
 /*!
- * sinput 1.0.1
+ * sinput 1.0.2
  * Copyright 2017 xovel, MIT licensed
  * https://github.com/xovel/sinput
  */
@@ -22,7 +22,7 @@ if (typeof jQuery === 'undefined') {
 
     options = $.extend({
       kls: 'sinput',
-      unique: true,
+      unique: false,
       name: '',
       placeholder: '',
       maxLength: 0,
@@ -44,7 +44,9 @@ if (typeof jQuery === 'undefined') {
       highlight: false,
       add: false,
       callback: null,
-      hideTrigger: false,
+      onHide: false,
+      onInput: false,
+      forceTrigger: false,
       ajax: false,
       responseReader: 'data',
       headers: {},
@@ -289,31 +291,28 @@ if (typeof jQuery === 'undefined') {
         var value = $(this).val();
 
         clearExtraData();
+        $dropdown.show();
         $message.empty().hide().siblings().remove();
+
+        if(options.maxLength && value.length > maxLength){
+          $message.html('输入文本已超出最大长度').show();
+          return;
+        }
         
         if(options.ajax && !options.cache){          
           loadAjaxData(value, function(){
-            _setExtraData(value);
+            setExtraData(value, options.onInput, options.forceTrigger);
           });
         }else{
           renderDropdown(originalData, value);
-          _setExtraData(value);
-        }
-
-        function _setExtraData(value){
-          $dropdown.find('.sinput-item').each(function(){
-            var $this = $(this);
-            if(value === $this.text()){
-              setExtraData($this);
-              return false;
-            }
-          });
+          setExtraData(value, options.onInput, options.forceTrigger);
         }
       });
 
       $('body').on('mousedown.sinput', function(e){
         var $temp = $(e.target).closest('.' + options.kls);
-        if($temp.length < 1){
+        var isDropdownVisible = $dropdown.is(':visible'); 
+        if(isDropdownVisible && $temp.length < 1){
           hideDropdown(true);
         }
       });
@@ -322,13 +321,8 @@ if (typeof jQuery === 'undefined') {
         var $this = $(this);
         var value = $this.text();
         $input.val(value);
-        if(options.extraData){
-          setExtraData($this);
-        }
 
-        if($.isFunction(options.callback)){
-          options.callback.call(this, this, value);
-        }
+        setExtraData(value, options.callback);
 
         hideDropdown();
       });
@@ -341,40 +335,61 @@ if (typeof jQuery === 'undefined') {
           return;
         }
 
-        var isIn = false;
+        var data;
         var curValue = $input.val();
 
         $.each(searchResultData, function(index, item){
-          if(curValue === item.text){
-            isIn = true;
+          if(curValue === item[options.text]){
+            data = item;
             return false;
           }
         });
 
-        if(!isIn){
+        if(!data){
+          curValue = '';
           $input.val('');
-          if(options.hideTrigger && $.isFunction(options.callback)){
-            options.callback.call(null, null, curValue);
-          }
+        }
+        if(options.onHide && $.isFunction(options.callback)){
+          options.callback.call(null, curValue, data);
         }
       }
 
-      function setExtraData($item){
-        $.each(options.extraData, function(index, value){
-          var _v = $item.data(value);
-          if(options.extraDataName){
-            var name = options.extraDataName[index];
-            $('#' + options.idPrefix + name).remove();
-            $('<input>').attr({
-              'id': options.idPrefix + name
-              ,'name': name
-              ,'type': 'hidden'
-            }).val(_v).insertAfter($input);
-          }else{
-            $input.removeAttr('data-' + value);
-            $input.attr('data-' + value, _v);
+      function setExtraData(searchText, hasCallback, noNeedData){
+        var _data;
+        $.each(searchResultData, function(index, item){
+          if(searchText === item[options.text]){
+            _data = item;
+            return false;
           }
         });
+
+        if(_data){
+          $.each(options.extraData, function(index, value){
+            var _v = _data[value];
+
+            if(options.extraDataName){
+              var name = options.extraDataName[index];
+              $('#' + options.idPrefix + name).remove();
+              $('<input>').attr({
+                'id': options.idPrefix + name
+                ,'name': name
+                ,'type': 'hidden'
+              }).val(_v).insertAfter($input);
+            }else{
+              $input.removeAttr('data-' + value);
+              $input.attr('data-' + value, _v);
+            }
+          });
+        }else{
+          if(!noNeedData){
+            return;
+          }
+        }
+
+        if(hasCallback){
+          var fnCallback = $.isFunction(hasCallback) ? hasCallback : $.isFunction(options.callback) ? options.callback : $.noop;
+          fnCallback.call(null, searchText, _data);
+        }
       }
 
       function clearExtraData(){
@@ -410,7 +425,9 @@ if (typeof jQuery === 'undefined') {
         switch(e.keyCode){
           case keys.esc:
           case keys.tab: {
-            hideDropdown(true);
+            if(!isDropdownHidden){
+              hideDropdown(true);
+            }
             break;
           }
           case keys.up: {
@@ -434,7 +451,7 @@ if (typeof jQuery === 'undefined') {
           }
           case keys.enter: {
             if(isDropdownHidden){
-              $input.trigger('focus');
+              $input.trigger('focus.sinput');
             }else{
               $dropdown.find('.hover').trigger('click');
             }
@@ -495,10 +512,10 @@ if (typeof jQuery === 'undefined') {
         var temp = {};
         $.each(data, function(index, value){
           if(typeof value === 'string'){
-            temp.text = value;
+            temp[options.text] = value;
           }else{
             temp = value;
-            temp.text = temp[options.text] || temp.text || '';
+            temp[options.text] = temp[options.text] || '';
           }
           ret.push(temp);
         });
@@ -515,16 +532,16 @@ if (typeof jQuery === 'undefined') {
 
         $message.empty().hide().siblings().remove();
 
-        searchResultData = items = searchItems(items, filterText);
+        searchResultData = searchItems(items, filterText);
 
-        if(items.length<1){
+        if(searchResultData.length<1){
           $message
             .html(!$input.val() ? '暂无数据' : options.add ? '没有该数据，可添加' : '没有该数据')
             .show();
           return;
         }
 
-        $.each(items, function(index, item){
+        $.each(searchResultData, function(index, item){
 
           var $item = $('<div>');
           if(index === 0){
@@ -535,7 +552,7 @@ if (typeof jQuery === 'undefined') {
           }
           $item.addClass('sinput-item')
             .html(function(){
-              var text = item.text;
+              var text = item[options.text];
               if(options.highlight && filterText){
                 var reg = new RegExp(filterText, 'g');
                 text = text.replace(reg, function(a){
@@ -549,18 +566,13 @@ if (typeof jQuery === 'undefined') {
             })
             .appendTo($dropdown);
           if(options.title){
-            $item.attr('title', item.text)
+            $item.attr('title', item[options.text]);
           }
           if(options.ellipsis){
             $item.css({
               'white-space': 'nowrap',
               'overflow': 'hidden',
               'text-overflow': 'ellipsis'
-            });
-          }
-          if(options.extraData){
-            $.each(options.extraData, function(index, value){
-              $item.attr('data-' + value, item[value]);
             });
           }
         });
@@ -573,7 +585,7 @@ if (typeof jQuery === 'undefined') {
           return items;
         }
         $.each(items, function(index, item){
-          if(item.text.indexOf(value)!==-1){
+          if(item[options.text].indexOf(value)!==-1){
             ret.push(item);
           }
         });
