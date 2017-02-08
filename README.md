@@ -114,6 +114,7 @@ A search input plugin, based on jQuery.
 - $.ajax
 - $.fn.html
 - $.fn.on
+- $.fn.off
 - $.type
 - $.isFunction
 - $.fn.text
