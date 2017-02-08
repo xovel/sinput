@@ -50,10 +50,10 @@ A search input plugin, based on jQuery.
 - searchForce: false 布尔值，是否对ajax搜索到的数据进行强制性过滤。
 - searchUrl: '' 字符串，ajax搜索时的路径，如果未指定，则使用url参数。
 - searchHeaders: {} 对象，ajax搜索时的附加headers。
-- searchType: '' 字符串，ajax搜索时的ype，如果未指定则使用type参数。
+- searchType: '' 字符串，ajax搜索时的类型，如果未指定则使用type参数。
 - searchDataType: '' 字符串，ajax搜索时的datatype，如果未指定则使用datatype参数。
 
-## Version
+## History
 
 ### 1.0.2
 
