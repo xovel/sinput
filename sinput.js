@@ -1,3 +1,8 @@
+/*!
+ * sinput 1.0.1
+ * Copyright 2017 xovel, MIT licensed
+ * https://github.com/xovel/sinput
+ */
 if (typeof jQuery === 'undefined') {
   throw new Error('Sinput\'s JavaScript requires jQuery')
 }
@@ -16,8 +21,8 @@ if (typeof jQuery === 'undefined') {
     }
 
     options = $.extend({
-      id: '',
       kls: 'sinput',
+      unique: true,
       name: '',
       placeholder: '',
       maxLength: 0,
@@ -29,16 +34,18 @@ if (typeof jQuery === 'undefined') {
       hoverColor: '#fff',
       hoverBackground: '#999',
       title: true,
-      ellipsis: true,
+      ellipsis: false,
       extraData: [],
       extraDataName: false,
       idPrefix: 'sinput-',
       preventKeyEvent: false,
       data: [],
       text: 'text',
+      highlight: false,
       add: false,
       callback: null,
-      ajax: true,
+      hideTrigger: false,
+      ajax: false,
       responseReader: 'data',
       headers: {},
       init: true,
@@ -55,7 +62,7 @@ if (typeof jQuery === 'undefined') {
       searchHeaders: {},
       searchType: '',
       searchDataType: ''
-    }, options);
+    }, $.fn.sinput._default, options);
 
     var keys = {
       tab: 9,
@@ -73,13 +80,16 @@ if (typeof jQuery === 'undefined') {
 
     return this.each(function(){
       var $input = $(this).addClass(options.kls);
-      var position = $input.position();
-      var height = $input.outerHeight();
-      var width = $input.outerWidth();
 
-      var $dropdown = $('<div>').attr('id', options.id).addClass(options.kls);
+      var $dropdown = $('<div>').addClass(options.kls);
       var $message = $('<div>');
-      var $pager = $('<div>');
+
+      var id = $input.attr('id');
+      if(id && options.unique){
+        id = 'sinput-dropdown-' + id;
+        $('#' + id).remove();
+        $dropdown.attr('id', id);
+      }
 
       if(options.name){
         $input.attr('name', options.name);
@@ -122,15 +132,19 @@ if (typeof jQuery === 'undefined') {
 
       var _focus = false;
       var _init = false;
+      var _error = false;
 
-      var origData = [];
+      var originalData = [];
+      var searchResultData = [];
 
       if(options.ajax){
         if(options.init){
-          loadAjaxData();
+          loadAjaxData('', function(){
+            _init = true;
+          });
         }
       }else{
-        origData = parseData(options.data);
+        originalData = parseData(options.data);
       }
 
       function loadAjaxData(text, callback){
@@ -142,16 +156,16 @@ if (typeof jQuery === 'undefined') {
         var headers = options.headers;
         var param = options.searchParam;
 
-        var temp, temp2, temp3;
-
         if(text){
           url = options.searchUrl || url;
           type = options.searchType || type;
           dataType = options.searchDataType || dataType;
-          headers = options.searchHeaders || headers;
+          headers = $.extend({}, headers, options.searchHeaders);
         }
 
         if(options.urlParse){
+          var temp, temp2, temp3;
+
           temp = url.split("?");
           url = temp[0];
 
@@ -166,8 +180,13 @@ if (typeof jQuery === 'undefined') {
 
         param[options.searchName] = text || '';
 
-        if(options.stringify){
-          param = JSON.stringify(param);
+        if(type.toLowerCase() === 'post'){
+          if(options.stringify && typeof JSON === 'object' && JSON.stringify){
+            param = JSON.stringify(param);
+          }
+          if(dataType.toLowerCase() === 'json'){
+            headers = $.extend({}, headers, {"Accept": "application/json", "Content-Type": "application/json"});
+          }
         }
 
         $.ajax({
@@ -177,6 +196,7 @@ if (typeof jQuery === 'undefined') {
           data: param,
           datatype: dataType,
           beforeSend: function () {
+            _error = false;
             $message.html('正在加载数据...').show().siblings().remove();
           },
           success: function(res){
@@ -184,8 +204,6 @@ if (typeof jQuery === 'undefined') {
             var list;
             var ret = [];
             var message = '';
-
-            _init = true;
 
             if(options.responseReader){
               list = readFromResponse(res, options.responseReader); // res[options.responseReader];
@@ -202,22 +220,18 @@ if (typeof jQuery === 'undefined') {
               message = !text ? '暂无数据' : options.add ? '没有该数据，可添加' : '没有该数据';
               $message.html(message).show();
             }else{
+              originalData = parseData(list);
 
-              origData = parseData(list);
-
-              if(options.searchForce){
-                renderDropdown(origData, text);
-              }else{
-                renderDropdown(origData);
-              }
+              renderDropdown(originalData, options.searchForce ? text : '');
 
               if($.isFunction(callback)){
                 callback.call();
               }
             }
-                        
+
           },
           error: function(){
+            _error = true;
             $message.html('网络异常，请稍后再试').show();
           }
         });
@@ -234,13 +248,15 @@ if (typeof jQuery === 'undefined') {
         return ret;
       }
 
-      $input.on('focus click', function(e){
+      $input.off('.sinput');
+
+      $input.on('focus.sinput click.sinput', function(e){
 
         if(e.type === 'focus'){
           _focus = true;
         }
 
-        if(_focus && e.type === 'click'){
+        if(_focus && e.type === 'click' || $dropdown.is(':visible')){
           _focus = false;
           return;
         }
@@ -260,16 +276,16 @@ if (typeof jQuery === 'undefined') {
 
         if(_init && !value){
           _init = false;
-          renderDropdown(origData);
+          renderDropdown(originalData);
         }else{
           if(options.ajax && !options.cache){
             loadAjaxData(value);
           }else{
-            renderDropdown(origData, value);
+            renderDropdown(originalData, value);
           }
         }
 
-      }).on('input', function(){
+      }).on('input.sinput', function(){
         var value = $(this).val();
 
         clearExtraData();
@@ -280,7 +296,7 @@ if (typeof jQuery === 'undefined') {
             _setExtraData(value);
           });
         }else{
-          renderDropdown(origData, value);
+          renderDropdown(originalData, value);
           _setExtraData(value);
         }
 
@@ -295,8 +311,8 @@ if (typeof jQuery === 'undefined') {
         }
       });
 
-      $('body').on('mousedown', function(e){
-        var $temp = $(e.target).closest('.sinput');
+      $('body').on('mousedown.sinput', function(e){
+        var $temp = $(e.target).closest('.' + options.kls);
         if($temp.length < 1){
           hideDropdown(true);
         }
@@ -328,9 +344,8 @@ if (typeof jQuery === 'undefined') {
         var isIn = false;
         var curValue = $input.val();
 
-        $dropdown.find('.sinput-item').each(function(){
-          var $this = $(this);
-          if(curValue === $this.text()){
+        $.each(searchResultData, function(index, item){
+          if(curValue === item.text){
             isIn = true;
             return false;
           }
@@ -338,7 +353,10 @@ if (typeof jQuery === 'undefined') {
 
         if(!isIn){
           $input.val('');
-        }        
+          if(options.hideTrigger && $.isFunction(options.callback)){
+            options.callback.call(null, null, curValue);
+          }
+        }
       }
 
       function setExtraData($item){
@@ -346,7 +364,7 @@ if (typeof jQuery === 'undefined') {
           var _v = $item.data(value);
           if(options.extraDataName){
             var name = options.extraDataName[index];
-            $('#'+ options.idPrefix + name).remove();
+            $('#' + options.idPrefix + name).remove();
             $('<input>').attr({
               'id': options.idPrefix + name
               ,'name': name
@@ -363,7 +381,7 @@ if (typeof jQuery === 'undefined') {
         $.each(options.extraData, function(index, value){
           if(options.extraDataName){
             var name = options.extraDataName[index];
-            $('#'+ options.idPrefix + name).remove();
+            $('#' + options.idPrefix + name).remove();
           }else{
             $input.removeAttr('data-' + value);
           }
@@ -387,7 +405,8 @@ if (typeof jQuery === 'undefined') {
       });
 
       // $input.add($dropdown)
-      $input.on('keydown', function(e){
+      $input.on('keydown.sinput', function(e){
+        var isDropdownHidden = $dropdown.is(':hidden');
         switch(e.keyCode){
           case keys.esc:
           case keys.tab: {
@@ -405,17 +424,20 @@ if (typeof jQuery === 'undefined') {
             if(options.preventKeyEvent){
               e.preventDefault();
             }
-            var isDropdownHidden = $dropdown.is(':hidden');
             if(isDropdownHidden){              
               $dropdown.show();
-              renderDropdown(origData, $input.val());
+              renderDropdown(originalData, $input.val());
             }else{
               moveItemUpOrDown();
             }
             break;
           }
           case keys.enter: {
-            $dropdown.find('.hover').trigger('click');
+            if(isDropdownHidden){
+              $input.trigger('focus');
+            }else{
+              $dropdown.find('.hover').trigger('click');
+            }
             break;
           }
         }
@@ -471,7 +493,6 @@ if (typeof jQuery === 'undefined') {
       function parseData(data){
         var ret = [];
         var temp = {};
-        var i = 0;
         $.each(data, function(index, value){
           if(typeof value === 'string'){
             temp.text = value;
@@ -479,7 +500,6 @@ if (typeof jQuery === 'undefined') {
             temp = value;
             temp.text = temp[options.text] || temp.text || '';
           }
-          temp._index = i++;
           ret.push(temp);
         });
 
@@ -487,18 +507,25 @@ if (typeof jQuery === 'undefined') {
       }
 
       function renderDropdown(items, filterText){
+
+        if(_error){
+          $message.show();
+          return;
+        }
+
         $message.empty().hide().siblings().remove();
 
-        items = searchItems(items, filterText);
+        searchResultData = items = searchItems(items, filterText);
 
         if(items.length<1){
           $message
-            .html('未找到"' + $input.val() + '"')
+            .html(!$input.val() ? '暂无数据' : options.add ? '没有该数据，可添加' : '没有该数据')
             .show();
           return;
         }
 
         $.each(items, function(index, item){
+
           var $item = $('<div>');
           if(index === 0){
             $item.addClass('hover').css({
@@ -507,8 +534,16 @@ if (typeof jQuery === 'undefined') {
             });
           }
           $item.addClass('sinput-item')
-            .attr('data-index', item._index)
-            .html(item.text)
+            .html(function(){
+              var text = item.text;
+              if(options.highlight && filterText){
+                var reg = new RegExp(filterText, 'g');
+                text = text.replace(reg, function(a){
+                  return '<b>' + a + '</b>';
+                });
+              }
+              return text;
+            })
             .css({
               padding: options.padding
             })
@@ -543,7 +578,7 @@ if (typeof jQuery === 'undefined') {
           }
         });
 
-        return parseData(ret);
+        return ret;
       }
     });
   }
