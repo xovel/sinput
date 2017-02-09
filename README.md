@@ -17,10 +17,11 @@ A search input plugin, based on jQuery.
 - height: 200 数值，**必须**，下拉框的最大高度。
 - fontSize: '12px' 字符串，指定下拉框内各子元素的字体大小。
 - border: '1px solid #66afe9' 字符串，指定下拉框的边框样式。
+- background: '#fff' 字符串，指定下拉框的CSS背景。
 - padding: '5px' 字符串，指定下拉框内各子元素的内边距。
 - zIndex: 0 数值，指定下拉框的z-index值，如果为0，则忽略该参数。
 - hoverColor: '#fff' 数值，指定下拉框内当前被选中的元素的颜色。
-- hoverBackground: '#999' 数值，指定下拉框内当前被选中的元素的背景。
+- hoverBackground: '#3399ff' 数值，指定下拉框内当前被选中的元素的背景。
 - title: true 布尔值，下拉框内下拉子元素是否添加title属性，title与文本一致。
 - ellipsis: false 布尔值，下拉框内下拉子元素是否在超出时以省略符进行显示，如果为真，下拉子元素将不会进行折行显示。
 - extraData: [] 数组，指定额外数据，如果设置该值，在进行点击等相关操作时，会同时提取对应的额外数据。如果下一条参数为真，则额外数据将会以隐藏的input进行追加。
@@ -29,6 +30,7 @@ A search input plugin, based on jQuery.
 - preventKeyEvent: false 布尔值，input元素的上下方向键输入时是否阻止其他事件。
 - data: [] 数组，指定下拉框内的数据来源，数组内的子元素可以是字符串，也可以是对象。如果ajax参数为真，则忽略该参数；如果ajax为false，则必须设定该参数。
 - text: 'text' 字符串，**必须**，下拉框内数据来源的名称。根据该参数进行数据的读取。
+- scroller: false _jQuery选择器_，页面滚动时下拉框位置调整，本参数指定触发滚动的元素，默认为false。
 - highlight: false 布尔值，在进行搜索时，是否对匹配的结果进行高亮显示。高亮方式为常规的b标签加粗。
 - add: false 布尔值，如果输入的元素未能完全匹配到结果，是否保留该值。
 - callback: null 函数，在点击下拉子元素时触发的回调函数。
@@ -53,7 +55,35 @@ A search input plugin, based on jQuery.
 - searchType: '' 字符串，ajax搜索时的类型，如果未指定则使用type参数。
 - searchDataType: '' 字符串，ajax搜索时的datatype，如果未指定则使用datatype参数。
 
+## Build
+
+1. 将本repo的代码clone至本地： `git clone git@github.com:xovel/sinput.git`
+2. 安装所需依赖： `npm install`
+3. 运行gulp进行文件的提取与打包： `gulp`，生成的文件将会放置在`dist`目录下。
+4. 运行`gulp build`将会从本地的`comment.js`和`config.js`提取相关信息进行文件的生成，其中`comment.js`为注释文件，`config.js`为默认值预设文件。
+
+当然，你也可以根据项目根目录下的`sinput.js`进行相关操作。
+
+压缩插件采用`uglifyjs`，压缩后的文件名以`.min`方式追加。
+
+## TODO
+
+- [ ] ajax数据过多时的分页操作
+- [ ] 插件文档页面
+- [ ] 英文文档
+
 ## History
+
+### 1.0.3
+
+- 参数相关变更
+  - 新增参数`background`，指定下拉框的CSS背景
+  - 新增参数`scroller`，指定滚动触发元素
+  - `hoverBackground`默认值变更为`#3399ff`，该值为FireFox浏览器select下拉框被选中的下拉元素的背景色
+- 修复：数据初始化判断逻辑验证位置调整
+- 新增：对下拉框添加`box-sizing`的CSS项，设定值为`border-box`
+- 修复：获取input元素的位置时方法更改，避免定位问题造成的下拉框错位
+- 新增：页面滚动时下拉框位置调整，参数项为`scroller`，默认为fasle，不做触发
 
 ### 1.0.2
 
@@ -101,9 +131,11 @@ A search input plugin, based on jQuery.
 
 ## jQuery API used
 
+[jQuery API Documentation](http://api.jquery.com/)
+
 - $()
 - $.extend
-- $.fn.position
+- $.fn.offset
 - $.fn.outerHeight
 - $.fn.outerWidth
 - $.fn.attr
@@ -120,7 +152,6 @@ A search input plugin, based on jQuery.
 - $.fn.text
 - $.fn.val
 - $.fn.find
-- $.fn.data
 - $.fn.removeAttr
 - $.fn.insertAfter
 - $.each
@@ -131,7 +162,6 @@ A search input plugin, based on jQuery.
 - $.fn.prev
 - $.fn.next
 - $.fn.scrollTop
-- $.fn.offset
 - $.fn.height
 - $.fn.remove
 - $.fn.empty
