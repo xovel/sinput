@@ -16,10 +16,6 @@ if (typeof jQuery === 'undefined') {
       throw new Error('Need options');
     }
 
-    if(!options.data && !options.ajax){
-      throw new Error('Need data');
-    }
-
     options = $.extend({
       kls: 'sinput',
       unique: false,
@@ -29,6 +25,7 @@ if (typeof jQuery === 'undefined') {
       height: 200,
       fontSize: '12px',
       border: '1px solid #66afe9',
+      background: '#fff',
       padding: '5px',
       zIndex: 0,
       hoverColor: '#fff',
@@ -65,6 +62,10 @@ if (typeof jQuery === 'undefined') {
       searchType: '',
       searchDataType: ''
     }, $.fn.sinput._default, options);
+
+    if(!options.data && !options.ajax){
+      throw new Error('Need data');
+    }
 
     var keys = {
       tab: 9,
@@ -119,7 +120,9 @@ if (typeof jQuery === 'undefined') {
         maxHeight: options.height,
         fontSize: options.fontSize,
         border: options.border,
+        background: options.background,
         cursor: 'pointer',
+        boxSizing: 'border-box',
         position: 'absolute',
         display: 'none',
         overflowX: 'hidden',
@@ -263,7 +266,7 @@ if (typeof jQuery === 'undefined') {
           return;
         }
 
-        var position = $input.position();
+        var position = $input.offset();
         var height = $input.outerHeight();
         var width = $input.outerWidth();
 
