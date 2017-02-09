@@ -3,7 +3,11 @@
 
 /_
 
+/dist
+
 1.json
 bootstrap.css
 jquery2.1.3.js
 test.html
+config.js
+comment.js
