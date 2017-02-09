@@ -1,7 +1,7 @@
 var gulp = require('gulp');
 var clean = require('gulp-clean');
 var uglify = require('gulp-uglify');
-var rename = require('gulp-rename');
+var concat = require('gulp-concat');
 
 gulp.task('clean', function(){
   return gulp.src('./dist')
@@ -18,10 +18,20 @@ var preserveFirstComment = function() {
   };
 };
 
-gulp.task('default', ['clean'], function() {
+gulp.task('default', ['clean'], function(){
   gulp.src('sinput.js').pipe(gulp.dest('./dist/'));
   return gulp.src('sinput.js')
     .pipe(uglify({preserveComments: preserveFirstComment()}))
-    .pipe(rename('sinput.min.js'))
+    .pipe(concat('sinput.min.js'))
+    .pipe(gulp.dest('./dist/'));
+});
+
+gulp.task('build', ['clean'], function(){
+  gulp.src(['sinput.js', 'config.js'])
+    .pipe(concat('sinput.js'))
+    .pipe(gulp.dest('./dist/'));
+  return gulp.src(['comment.js', 'sinput.js', 'config.js'])
+    .pipe(concat('sinput.min.js'))
+    .pipe(uglify({preserveComments: preserveFirstComment()}))
     .pipe(gulp.dest('./dist/'));
 });
