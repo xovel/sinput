@@ -1,5 +1,5 @@
 /*!
- * sinput 1.0.2
+ * sinput 1.0.3
  * Copyright 2017 xovel, MIT licensed
  * https://github.com/xovel/sinput
  */
@@ -29,7 +29,7 @@ if (typeof jQuery === 'undefined') {
       padding: '5px',
       zIndex: 0,
       hoverColor: '#fff',
-      hoverBackground: '#999',
+      hoverBackground: '#3399ff',
       title: true,
       ellipsis: false,
       extraData: [],
@@ -38,6 +38,7 @@ if (typeof jQuery === 'undefined') {
       preventKeyEvent: false,
       data: [],
       text: 'text',
+      scroller: false,
       highlight: false,
       add: false,
       callback: null,
@@ -271,7 +272,7 @@ if (typeof jQuery === 'undefined') {
         var width = $input.outerWidth();
 
         $dropdown.css({
-          width: width,          
+          width: width,
           left: position.left,
           top: position.top + height,
           display: 'block'
@@ -318,6 +319,22 @@ if (typeof jQuery === 'undefined') {
         if(isDropdownVisible && $temp.length < 1){
           hideDropdown(true);
         }
+      });
+
+      $(options.scroller).on('scroll.sinput', function(){
+        if($dropdown.is(':hidden')){
+          return;
+        }
+
+        var position = $input.offset();
+        var height = $input.outerHeight();
+        var width = $input.outerWidth();
+
+        $dropdown.css({
+          width: width,
+          left: position.left,
+          top: position.top + height
+        });
       });
 
       $dropdown.on('click', '.sinput-item', function(){
