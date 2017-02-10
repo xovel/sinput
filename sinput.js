@@ -44,6 +44,7 @@ if (typeof jQuery === 'undefined') {
       callback: null,
       onHide: false,
       onInput: false,
+      emptyTrigger: true,
       forceTrigger: false,
       ajax: false,
       responseReader: 'data',
@@ -293,6 +294,7 @@ if (typeof jQuery === 'undefined') {
 
       }).on('input.sinput', function(){
         var value = $(this).val();
+        var force;
 
         clearExtraData();
         $dropdown.show();
@@ -302,14 +304,16 @@ if (typeof jQuery === 'undefined') {
           $message.html('输入文本已超出最大长度').show();
           return;
         }
+
+        force = value === '' ? options.emptyTrigger : options.forceTrigger;
         
-        if(options.ajax && !options.cache){          
+        if(options.ajax && !options.cache){
           loadAjaxData(value, function(){
-            setExtraData(value, options.onInput, options.forceTrigger);
+            setExtraData(value, options.onInput, force);
           });
         }else{
           renderDropdown(originalData, value);
-          setExtraData(value, options.onInput, options.forceTrigger);
+          setExtraData(value, options.onInput, force);
         }
       });
 
@@ -345,18 +349,22 @@ if (typeof jQuery === 'undefined') {
         setExtraData(value, options.callback);
 
         hideDropdown();
+
+        _focus = true;
+        $input.trigger('click.sinput');
       });
 
       function hideDropdown(isAdd){
 
         $dropdown.hide();
 
-        if(!isAdd || options.add){
-          return;
-        }
-
         var data;
         var curValue = $input.val();
+        var force = false;
+
+        if(!isAdd || options.add || (curValue === '' && options.emptyTrigger)){
+          return;
+        }
 
         $.each(searchResultData, function(index, item){
           if(curValue === item[options.text]){
@@ -366,10 +374,11 @@ if (typeof jQuery === 'undefined') {
         });
 
         if(!data){
+          force = true;
           curValue = '';
           $input.val('');
         }
-        if(options.onHide && $.isFunction(options.callback)){
+        if(options.onHide && (force || !options.onInput) && $.isFunction(options.callback)){
           options.callback.call(null, curValue, data);
         }
       }
