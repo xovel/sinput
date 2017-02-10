@@ -13,7 +13,7 @@ A search input plugin, based on jQuery.
 - unique: false 布尔值，设定下拉框的唯一性，如果input元素未指定id，则忽略该参数。
 - name: '' 字符串，指定input元素的name。
 - placeholder: '' 字符串，指定input元素的placeholder。
-- maxLength: 0 数值，指定input元素的maxlength，如果input元素本身已经设定了maxlength，则取两者的最小值作为maxlength。
+- maxLength: 0 数值，指定input元素的maxlength，如果input元素本身已经设定了maxlength，则取两者的最小值。
 - height: 200 数值，**必须**，下拉框的最大高度。
 - fontSize: '12px' 字符串，指定下拉框内各子元素的字体大小。
 - border: '1px solid #66afe9' 字符串，指定下拉框的边框样式。
@@ -21,13 +21,13 @@ A search input plugin, based on jQuery.
 - padding: '5px' 字符串，指定下拉框内各子元素的内边距。
 - zIndex: 0 数值，指定下拉框的z-index值，如果为0，则忽略该参数。
 - hoverColor: '#fff' 数值，指定下拉框内当前被选中的元素的颜色。
-- hoverBackground: '#3399ff' 数值，指定下拉框内当前被选中的元素的背景。
+- hoverBackground: '#3399ff' 字符串，指定下拉框内当前被选中的元素的CSS背景。
 - title: true 布尔值，下拉框内下拉子元素是否添加title属性，title与文本一致。
-- ellipsis: false 布尔值，下拉框内下拉子元素是否在超出时以省略符进行显示，如果为真，下拉子元素将不会进行折行显示。
+- ellipsis: false 布尔值，下拉框内下拉子元素是否在超出时显示省略符。如果为真，下拉子元素将不会进行折行显示。
 - extraData: [] 数组，指定额外数据，如果设置该值，在进行点击等相关操作时，会同时提取对应的额外数据。如果下一条参数为真，则额外数据将会以隐藏的input进行追加。
 - extraDataName: false 数组或布尔值，指定上一条额外数据对应的名称，如果设置为true，名称将保持与额外数据的一致；如果设置为false，额外数据将会直接挂载到input元素之上。
 - idPrefix: 'sinput-' 字符串，指定额外数据的id前缀。如果extraDataName为真，该值必须进行指定，否则忽略该参数。
-- preventKeyEvent: false 布尔值，input元素的上下方向键输入时是否阻止其他事件。
+- preventKeyEvent: false 布尔值，input元素的上下方向键输入时是否阻止默认事件。
 - data: [] 数组，指定下拉框内的数据来源，数组内的子元素可以是字符串，也可以是对象。如果ajax参数为真，则忽略该参数；如果ajax为false，则必须设定该参数。
 - text: 'text' 字符串，**必须**，下拉框内数据来源的名称。根据该参数进行数据的读取。
 - scroller: false _jQuery选择器_，页面滚动时下拉框位置调整，本参数指定触发滚动的元素，默认为false。
@@ -64,7 +64,7 @@ A search input plugin, based on jQuery.
 
 当然，你也可以根据项目根目录下的`sinput.js`进行相关操作。
 
-压缩插件采用`uglifyjs`，压缩后的文件名以`.min`方式追加。
+代码的压缩采用`uglifyjs`，压缩后的文件名以`.min`方式追加。
 
 ## TODO
 
