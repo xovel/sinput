@@ -30,7 +30,7 @@ gulp.task('build', ['clean'], function(){
   gulp.src(['sinput.js', 'config.js'])
     .pipe(concat('sinput.js'))
     .pipe(gulp.dest('./dist/'));
-  return gulp.src(['comment.js', 'sinput.js', 'config.js'])
+  return gulp.src(['sinput.js', 'config.js'])
     .pipe(concat('sinput.min.js'))
     .pipe(uglify({preserveComments: preserveFirstComment()}))
     .pipe(gulp.dest('./dist/'));

@@ -50,7 +50,7 @@ if (typeof jQuery === 'undefined') {
       responseReader: 'data',
       headers: {},
       init: true,
-      cache: false,
+      cache: true,
       url: '',
       urlParse: false,
       type: 'get',

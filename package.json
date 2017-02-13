@@ -4,6 +4,12 @@
   "version": "1.0.3",
   "author": "xovel <xovel@vip.qq.com>",
 
+  "main": "sinput.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xovel/sinput.git"
+  },
+
   "homepage": "https://github.com/xovel/sinput/",
   "keywords": [
     "sinput",
