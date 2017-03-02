@@ -84,7 +84,7 @@ if (typeof jQuery === 'undefined') {
     }
 
     return this.each(function(){
-      var $input = $(this).addClass(options.kls);
+      var $input = $(this).attr('autocomplete', 'off');
 
       var $dropdown = $('<div>').addClass(options.kls);
       var $message = $('<div>');
@@ -319,7 +319,7 @@ if (typeof jQuery === 'undefined') {
 
       $('body').on('mousedown.sinput', function(e){
         var $temp = $(e.target).closest('.' + options.kls);
-        var isDropdownVisible = $dropdown.is(':visible'); 
+        var isDropdownVisible = $dropdown.is(':visible');
         if(isDropdownVisible && $temp.length < 1){
           hideDropdown(true);
         }
