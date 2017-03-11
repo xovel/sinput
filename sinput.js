@@ -12,10 +12,6 @@ if (typeof jQuery === 'undefined') {
 
   $.fn.sinput = function(options){
 
-    if(typeof options !== 'object'){
-      throw new Error('Need options');
-    }
-
     options = $.extend({
       kls: 'sinput',
       unique: false,
@@ -46,7 +42,6 @@ if (typeof jQuery === 'undefined') {
       onInput: false,
       emptyTrigger: true,
       forceTrigger: false,
-      ajax: false,
       responseReader: 'data',
       headers: {},
       init: true,
@@ -56,18 +51,10 @@ if (typeof jQuery === 'undefined') {
       type: 'get',
       dataType: 'json',
       stringify: true,
-      searchName: 'q',
+      searchName: '',
       searchParam: {},
-      searchForce: false,
-      searchUrl: '',
-      searchHeaders: {},
-      searchType: '',
-      searchDataType: ''
+      searchForce: false
     }, $.fn.sinput._default, options);
-
-    if(!options.data && !options.ajax){
-      throw new Error('Need data');
-    }
 
     var keys = {
       tab: 9,
@@ -162,13 +149,6 @@ if (typeof jQuery === 'undefined') {
         var dataType = options.dataType;
         var headers = options.headers;
         var param = options.searchParam;
-
-        if(text){
-          url = options.searchUrl || url;
-          type = options.searchType || type;
-          dataType = options.searchDataType || dataType;
-          headers = $.extend({}, headers, options.searchHeaders);
-        }
 
         if(options.urlParse){
           var temp, temp2, temp3;
