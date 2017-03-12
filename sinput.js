@@ -30,7 +30,6 @@ if (typeof jQuery === 'undefined') {
       ellipsis: false,
       extraData: [],
       extraDataName: false,
-      idPrefix: 'sinput-',
       preventKeyEvent: false,
       data: [],
       text: 'text',
@@ -53,8 +52,15 @@ if (typeof jQuery === 'undefined') {
       stringify: true,
       searchName: '',
       searchParam: {},
+      ajaxOptions: {},
       searchForce: false
     }, $.fn.sinput._default, options);
+
+    if($.isFunction(options.__)){
+      // Internal usage
+      // do this only you know what it means
+      options = options.__(options);
+    }
 
     var keys = {
       tab: 9,
@@ -73,8 +79,26 @@ if (typeof jQuery === 'undefined') {
     return this.each(function(){
       var $input = $(this).attr('autocomplete', 'off');
 
-      var $dropdown = $('<div>').addClass(options.kls);
-      var $message = $('<div>');
+      var $dropdown = $('<div>')
+        .addClass(options.kls)
+        .css({
+          maxHeight: options.height,
+          fontSize: options.fontSize,
+          border: options.border,
+          background: options.background,
+          cursor: 'pointer',
+          boxSizing: 'border-box',
+          position: 'absolute',
+          display: 'none',
+          overflowX: 'hidden',
+          overflowY: 'auto'
+        });
+      var $message = $('<div>')
+        .css({
+          padding: options.padding,
+          fontSize: options.fontSize,
+          display: 'none'
+        });
 
       var id = $input.attr('id');
       if(id && options.unique){
@@ -100,38 +124,19 @@ if (typeof jQuery === 'undefined') {
         $input.attr('maxlength', maxLength);
       }
 
-      $message.css({
-        padding: options.padding,
-        fontSize: options.fontSize
-      }).hide().appendTo($dropdown);
-
-      $dropdown.css({
-        maxHeight: options.height,
-        fontSize: options.fontSize,
-        border: options.border,
-        background: options.background,
-        cursor: 'pointer',
-        boxSizing: 'border-box',
-        position: 'absolute',
-        display: 'none',
-        overflowX: 'hidden',
-        overflowY: 'auto'
-      }).appendTo('body');
-
       if(options.zIndex){
         $dropdown.css({
           zIndex: options.zIndex
         });
       }
 
-      var _focus = false;
       var _init = false;
-      var _error = false;
+      var _error = '';
 
       var originalData = [];
       var searchResultData = [];
 
-      if(options.ajax){
+      if(options.url){
         if(options.init){
           loadAjaxData('', function(){
             _init = true;
@@ -141,7 +146,7 @@ if (typeof jQuery === 'undefined') {
         originalData = parseData(options.data);
       }
 
-      function loadAjaxData(text, callback){
+      function loadAjaxData(text, callback, beforeSend){
 
         // ajax dealer
         var type = options.type;
@@ -181,10 +186,12 @@ if (typeof jQuery === 'undefined') {
           url: url,
           type: type,
           data: param,
-          datatype: dataType,
+          dataType: dataType,
           beforeSend: function () {
-            _error = false;
-            $message.html('正在加载数据...').show().siblings().remove();
+            _error = '';
+            if($.isFunction(beforeSend)){
+              beforeSend();
+            }
           },
           success: function(res){
 
@@ -199,13 +206,12 @@ if (typeof jQuery === 'undefined') {
             }
 
             if($.type(list) !== 'array'){
-              $message.html('数据类型错误，请检查相关配置').show();
+              _error = '数据类型错误，请检查相关配置';
               return false;
             }
 
             if(list.length < 1){
-              message = !text ? '暂无数据' : options.add ? '没有该数据，可添加' : '没有该数据';
-              $message.html(message).show();
+              _error = !text ? '暂无数据' : options.add ? '没有该数据，可添加' : '没有该数据';
             }else{
               originalData = parseData(list);
 
@@ -215,11 +221,9 @@ if (typeof jQuery === 'undefined') {
                 callback.call();
               }
             }
-
           },
           error: function(){
-            _error = true;
-            $message.html('网络异常，请稍后再试').show();
+            _error = '网络异常，请稍后再试';
           }
         });
       }
@@ -237,14 +241,9 @@ if (typeof jQuery === 'undefined') {
 
       $input.off('.sinput');
 
-      $input.on('focus.sinput click.sinput', function(e){
+      $input.on('click.sinput', function(e){
 
-        if(e.type === 'focus'){
-          _focus = true;
-        }
-
-        if(_focus && e.type === 'click' || $dropdown.is(':visible')){
-          _focus = false;
+        if($dropdown.is(':visible')){
           return;
         }
 
