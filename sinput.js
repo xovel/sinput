@@ -46,12 +46,12 @@ if (typeof jQuery === 'undefined') {
       init: true,
       cache: true,
       url: '',
+      urlParse: true,
       type: 'GET',
       dataType: 'json',
       stringify: true,
       searchName: '',
       searchParam: {},
-      ajaxOptions: {},
       searchForce: false
     }, $.fn.sinput._default, options);
 
@@ -185,7 +185,7 @@ if (typeof jQuery === 'undefined') {
           }
         }
 
-        if($ajax){
+        if($ajax && $ajax.readyState !== 4){
           $ajax.abort();
         }
 
@@ -222,9 +222,9 @@ if (typeof jQuery === 'undefined') {
             }else{
               originalData = parseData(list);
 
-              renderDropdown(originalData, options.searchForce ? text : '');
-
               callback();
+
+              renderDropdown(originalData, options.searchForce ? text : '');
             }
           },
           error: function(){
