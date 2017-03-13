@@ -166,6 +166,7 @@ if (typeof jQuery === 'undefined') {
         }
       }else{
         originalData = parseData(options.data);
+        renderDropdown(originalData);
       }
 
       function loadAjaxData(text, callback){
@@ -275,7 +276,7 @@ if (typeof jQuery === 'undefined') {
         $dropdown.show();
         setDropdownPostion();
         
-        var value = $(this).val();
+        var value = $.trim($(this).val());
 
         if(_init && !value){
           _init = false;
@@ -310,6 +311,8 @@ if (typeof jQuery === 'undefined') {
         }
 
         force = value === '' ? options.emptyTrigger : options.forceTrigger;
+
+        value = $.trim(value);
         
         if(options.url && !options.cache){
           loadAjaxData(value, function(){
@@ -360,7 +363,7 @@ if (typeof jQuery === 'undefined') {
         $dropdown.hide();
 
         var data;
-        var curValue = $input.val();
+        var curValue = $.trim($input.val());
         var force = false;
 
         if(!isAdd || options.add || (curValue === '' && options.emptyTrigger)){

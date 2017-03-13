@@ -26,7 +26,6 @@ A search input plugin, based on jQuery.
 - ellipsis: false 布尔值，下拉框内下拉子元素是否在超出时显示省略符。如果为真，下拉子元素将不会进行折行显示。
 - extraData: [] 数组，指定额外数据，如果设置该值，在进行点击等相关操作时，会同时提取对应的额外数据。如果下一条参数为真，则额外数据将会以隐藏的input进行追加。
 - extraDataName: false 数组或布尔值，指定上一条额外数据对应的名称，如果设置为true，名称将保持与额外数据的一致；如果设置为false，额外数据将会直接挂载到input元素之上。
-- idPrefix: 'sinput-' 字符串，指定额外数据的id前缀。如果extraDataName为真，该值必须进行指定，否则忽略该参数。
 - preventKeyEvent: false 布尔值，input元素的上下方向键输入时是否阻止默认事件。
 - data: [] 数组，指定下拉框内的数据来源，数组内的子元素可以是字符串，也可以是对象。如果ajax参数为真，则忽略该参数；如果ajax为false，则必须设定该参数。
 - text: 'text' 字符串，**必须**，下拉框内数据来源的名称。根据该参数进行数据的读取。
@@ -37,23 +36,18 @@ A search input plugin, based on jQuery.
 - onHide: false 布尔值，在其它地方按下鼠标时，是否触发callback回调函数。
 - onInput: false 布尔值或函数，在进行搜索时，在出现完全匹配的结果时，触发的回调函数。如果为真并且不为函数，则使用callback回调函数。
 - forceTrigger: false 布尔值，在进行搜索时，是否强制进行回调函数的触发。
-- ajax: false 布尔值，是否启用ajax获取数据。如果data参数未设置，则该值必须设置为true。
 - responseReader: 'data' 字符串，ajax获取到的数据的读取器。如果不进行设置，则使用ajax返回的数据。
 - headers: {} 对象，发送ajax请求时的headers值。
 - init: true 布尔值，ajax加载数据时，是否直接进行初始化获取。
 - cache: false 布尔值，是否对ajax结果进行缓存。如果设置为false，则相关数据均会从ajax获取。
 - url: '' 字符串，ajax请求的路径。如果设置了ajax，该值必须指定。
-- urlParse: false 布尔值，是否对url进行解析，提取url中自带的参数。
+- urlParse: false 布尔值，是否对url进行解析，提取url中自带的参数。仅对type为post时有效。
 - type: 'get' 字符串，ajax请求的提交类型，一般为get或post。如果设置了ajax，该值必须指定。
 - dataType: 'json' 字符串，ajax请求的datatype值。如果type为post并且dataType为json，则强制添加json的相关的headers。
 - stringify: true 布尔值，ajax请求的type为post时，是否对提交的数据进行字符串转换。
-- searchName: 'q' 字符串，ajax请求时的搜索字段的名称。如果设置了ajax，该值必须指定。
+- searchName: '' 字符串，ajax请求时的搜索字段的名称。如果为指定，则取text参数。
 - searchParam: {} 对象，ajax请求时默认提交的参数。
 - searchForce: false 布尔值，是否对ajax搜索到的数据进行强制性过滤。
-- searchUrl: '' 字符串，ajax搜索时的路径，如果未指定，则使用url参数。
-- searchHeaders: {} 对象，ajax搜索时的附加headers。
-- searchType: '' 字符串，ajax搜索时的类型，如果未指定则使用type参数。
-- searchDataType: '' 字符串，ajax搜索时的datatype，如果未指定则使用datatype参数。
 
 ## Build
 
@@ -73,6 +67,32 @@ A search input plugin, based on jQuery.
 - [ ] 英文文档
 
 ## History
+
+### 1.0.4
+
+- 参数相关变更
+ - 删除参数`ajax`，通过指定`url`参数，直接开启ajax功能
+ - 删除参数`idPrefix`，额外数据在使用`input`进行赋值时，不指定其id，改为使用`sinput-extra`类名进行标识
+ - 新增参数`emptyTrigger`，指定输入框在进行输入时，当输入为空串时是否触发回调函数
+ - `unique`默认参数值更改为`true`，开启对下拉元素的唯一性指定
+ - `cache`参数默认值更改为`true`，默认开启对ajax结果的缓存
+ - `type`参数默认值更改为`GET`，使用大写，以贴近ajax标准
+ - `searchName`参数默认值为改为空串，表示与text参数相同
+ - `urlParse`参数默认值改为`true`，对type类型为post的请求，默认解析url并提取参数放入到seachParam参数中
+ - 删除参数`searchUrl`、`searchHeaders`、`searchType`、`searchDataType`，搜索时的各个参数直接由之前的进行指定即可，不需要重新指定一份
+- 更新：去除对参数的判定，如果未指定数据来源，视为空数据
+- 更新：`urlParse`的处理逻辑提升至参数初始化的阶段
+- 新增：引入`$.fn.sinput.guid`，对每一个调用本插件的元素进行标识
+- 更新：调整`unique`的逻辑，不论是否插件元素带有id，均进行指定，如果没有id，则使用上面的guid
+- 更新：下拉框元素处理逻辑更新，消息提示元素的处理逻辑更新，提升操作的便利性
+- 更新：删除插件元素的`focus`事件以及相关标记的状态
+- 更新：优化ajax的请求，调用ajax时直接中止之前的ajax请求
+- 修复：更改`$.ajax`参数名的错误`datatype`应为`dataType`
+- 更新：消息提示元素的显示与隐藏逻辑更新
+- 更新：为绑定`body`元素的`mousedown`事件添加一个命名
+- 新增：为`window`的`resize`事件绑定调整下拉框位置的功能
+- 更新：下拉框的`mouseenter`事件处理逻辑更新，提升操作速度
+- 更新：渲染下拉框的下拉元素时的处理逻辑更新，大幅度提升多数据时的渲染速度
 
 ### 1.0.3
 
