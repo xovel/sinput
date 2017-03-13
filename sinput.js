@@ -1,5 +1,5 @@
 /*!
- * sinput 1.0.3
+ * sinput 1.0.4
  * Copyright 2017 xovel, MIT licensed
  * https://github.com/xovel/sinput
  */
@@ -46,8 +46,7 @@ if (typeof jQuery === 'undefined') {
       init: true,
       cache: true,
       url: '',
-      urlParse: false,
-      type: 'get',
+      type: 'GET',
       dataType: 'json',
       stringify: true,
       searchName: '',
@@ -55,6 +54,25 @@ if (typeof jQuery === 'undefined') {
       ajaxOptions: {},
       searchForce: false
     }, $.fn.sinput._default, options);
+
+    if(options.extraDataName === true){
+      options.extraDataName = options.extraData;
+    }
+
+    if(options.urlParse && options.type.toUpperCase() === 'POST'){
+      var temp, temp2, temp3;
+
+      temp = options.url.split("?");
+      options.url = temp[0];
+
+      if(temp[1]){
+        temp2 = temp[1].split("&");
+        for(var i = 0; i < temp2.length; i++){
+          temp3 = temp2[i].split("=");
+          options.searchParam[temp3[0]] = temp3[1];
+        }
+      }
+    }
 
     if($.isFunction(options.__)){
       // Internal usage
@@ -72,12 +90,15 @@ if (typeof jQuery === 'undefined') {
       down: 40
     }
 
-    if(options.extraDataName === true){
-      options.extraDataName = options.extraData;
-    }
+    var $body = $('body');
+
+    $.fn.sinput.guid = $.fn.sinput.guid || 0;
 
     return this.each(function(){
-      var $input = $(this).attr('autocomplete', 'off');
+
+      var guid = ++$.fn.sinput.guid;
+      var $input = $(this).attr('autocomplete', 'off').data('sinput-guid', guid);
+      var id = $input.attr('id');
 
       var $dropdown = $('<div>')
         .addClass(options.kls)
@@ -92,7 +113,7 @@ if (typeof jQuery === 'undefined') {
           display: 'none',
           overflowX: 'hidden',
           overflowY: 'auto'
-        });
+        }).appendTo($body);
       var $message = $('<div>')
         .css({
           padding: options.padding,
@@ -100,9 +121,8 @@ if (typeof jQuery === 'undefined') {
           display: 'none'
         });
 
-      var id = $input.attr('id');
-      if(id && options.unique){
-        id = 'sinput-dropdown-' + id;
+      if(options.unique){
+        id = 'sinput-dropdown-' + (id ? id : guid);
         $('#' + id).remove();
         $dropdown.attr('id', id);
       }
@@ -131,7 +151,9 @@ if (typeof jQuery === 'undefined') {
       }
 
       var _init = false;
-      var _error = '';
+      var _message = '';
+
+      var $ajax;
 
       var originalData = [];
       var searchResultData = [];
@@ -146,7 +168,7 @@ if (typeof jQuery === 'undefined') {
         originalData = parseData(options.data);
       }
 
-      function loadAjaxData(text, callback, beforeSend){
+      function loadAjaxData(text, callback){
 
         // ajax dealer
         var type = options.type;
@@ -155,49 +177,34 @@ if (typeof jQuery === 'undefined') {
         var headers = options.headers;
         var param = options.searchParam;
 
-        if(options.urlParse){
-          var temp, temp2, temp3;
-
-          temp = url.split("?");
-          url = temp[0];
-
-          if(temp[1]){
-            temp2 = temp[1].split("&");
-            for(var i=0; i<temp2.length; i++){
-              temp3 = temp2[i].split("=");
-              param[temp3[0]] = temp3[1];
-            }
-          }
-        }
-
         param[options.searchName] = text || '';
 
-        if(type.toLowerCase() === 'post'){
+        if(type.toUpperCase() === 'POST'){
           if(options.stringify && typeof JSON === 'object' && JSON.stringify){
             param = JSON.stringify(param);
           }
-          if(dataType.toLowerCase() === 'json'){
-            headers = $.extend({}, headers, {"Accept": "application/json", "Content-Type": "application/json"});
-          }
         }
 
-        $.ajax({
+        if($ajax){
+          $ajax.abort();
+        }
+
+        $ajax = $.ajax({
           headers: headers,
           url: url,
           type: type,
           data: param,
           dataType: dataType,
-          beforeSend: function () {
-            _error = '';
-            if($.isFunction(beforeSend)){
-              beforeSend();
-            }
+          beforeSend: function(){
+            _message = '正在加载数据...';
+            showMessage(_message);
           },
           success: function(res){
 
             var list;
             var ret = [];
-            var message = '';
+
+            _message = '';
 
             if(options.responseReader){
               list = readFromResponse(res, options.responseReader); // res[options.responseReader];
@@ -206,24 +213,22 @@ if (typeof jQuery === 'undefined') {
             }
 
             if($.type(list) !== 'array'){
-              _error = '数据类型错误，请检查相关配置';
+              _message = '数据类型错误，请检查相关配置';
               return false;
             }
 
             if(list.length < 1){
-              _error = !text ? '暂无数据' : options.add ? '没有该数据，可添加' : '没有该数据';
+              _message = !text ? '暂无数据' : options.add ? '没有该数据，可添加' : '没有该数据';
             }else{
               originalData = parseData(list);
 
               renderDropdown(originalData, options.searchForce ? text : '');
 
-              if($.isFunction(callback)){
-                callback.call();
-              }
+              callback();
             }
           },
           error: function(){
-            _error = '网络异常，请稍后再试';
+            _message = '网络异常，请稍后再试';
           }
         });
       }
@@ -239,76 +244,15 @@ if (typeof jQuery === 'undefined') {
         return ret;
       }
 
-      $input.off('.sinput');
+      function showMessage(str){
+        $message.html(str).show().appendTo($dropdown).siblings().remove();
+      }
 
-      $input.on('click.sinput', function(e){
+      function hideMessage(){
+        $message.remove();
+      }
 
-        if($dropdown.is(':visible')){
-          return;
-        }
-
-        var position = $input.offset();
-        var height = $input.outerHeight();
-        var width = $input.outerWidth();
-
-        $dropdown.css({
-          width: width,
-          left: position.left,
-          top: position.top + height,
-          display: 'block'
-        });
-        
-        var value = $(this).val();
-
-        if(_init && !value){
-          _init = false;
-          renderDropdown(originalData);
-        }else{
-          if(options.ajax && !options.cache){
-            loadAjaxData(value);
-          }else{
-            renderDropdown(originalData, value);
-          }
-        }
-
-      }).on('input.sinput', function(){
-        var value = $(this).val();
-        var force;
-
-        clearExtraData();
-        $dropdown.show();
-        $message.empty().hide().siblings().remove();
-
-        if(options.maxLength && value.length > maxLength){
-          $message.html('输入文本已超出最大长度').show();
-          return;
-        }
-
-        force = value === '' ? options.emptyTrigger : options.forceTrigger;
-        
-        if(options.ajax && !options.cache){
-          loadAjaxData(value, function(){
-            setExtraData(value, options.onInput, force);
-          });
-        }else{
-          renderDropdown(originalData, value);
-          setExtraData(value, options.onInput, force);
-        }
-      });
-
-      $('body').on('mousedown.sinput', function(e){
-        var $temp = $(e.target).closest('.' + options.kls);
-        var isDropdownVisible = $dropdown.is(':visible');
-        if(isDropdownVisible && $temp.length < 1){
-          hideDropdown(true);
-        }
-      });
-
-      $(options.scroller).on('scroll.sinput', function(){
-        if($dropdown.is(':hidden')){
-          return;
-        }
-
+      function setDropdownPostion(){
         var position = $input.offset();
         var height = $input.outerHeight();
         var width = $input.outerWidth();
@@ -318,6 +262,85 @@ if (typeof jQuery === 'undefined') {
           left: position.left,
           top: position.top + height
         });
+      }
+
+      $input.off('.sinput');
+
+      $input.on('click.sinput', function(e){
+
+        if($dropdown.is(':visible')){
+          return;
+        }
+
+        $dropdown.show();
+        setDropdownPostion();
+        
+        var value = $(this).val();
+
+        if(_init && !value){
+          _init = false;
+          $dropdown.show();
+        }else{
+          if(options.init && !value){
+            $dropdown.show();
+          }else{
+            if(options.url && !options.cache){
+              loadAjaxData(value, function(){
+                hideMessage();
+              });
+            }else{
+              renderDropdown(originalData, value);
+            }
+          }
+        }
+
+      }).on('input.sinput', function(){
+
+        var value = $(this).val();
+        var force;
+
+        clearExtraData();
+        $dropdown.show();
+
+        showMessage('');
+
+        if(options.maxLength && value.length > maxLength){
+          $message.html('输入文本已超出最大长度');
+          return;
+        }
+
+        force = value === '' ? options.emptyTrigger : options.forceTrigger;
+        
+        if(options.url && !options.cache){
+          loadAjaxData(value, function(){
+            hideMessage();
+            setExtraData(value, options.onInput, force);
+          });
+        }else{
+          renderDropdown(originalData, value);
+          setExtraData(value, options.onInput, force);
+        }
+
+      });
+
+      $body.on('mousedown.sinput.s' + guid, function(e){
+        var $temp = $(e.target).closest('.' + options.kls);
+        var isDropdownVisible = $dropdown.is(':visible');
+        if(isDropdownVisible && $temp.length < 1){
+          hideDropdown(true);
+        }
+      });
+
+      $(window).on('resize.sinput.s' + guid, function(){
+        setDropdownPostion();
+      });
+
+      $(options.scroller).on('scroll.sinput.s' + guid, function(){
+        if($dropdown.is(':hidden')){
+          return;
+        }
+
+        setDropdownPostion();
       });
 
       $dropdown.on('click', '.sinput-item', function(){
@@ -329,8 +352,7 @@ if (typeof jQuery === 'undefined') {
 
         hideDropdown();
 
-        _focus = true;
-        $input.trigger('click.sinput');
+        $input.focus();
       });
 
       function hideDropdown(isAdd){
@@ -357,6 +379,7 @@ if (typeof jQuery === 'undefined') {
           curValue = '';
           $input.val('');
         }
+
         if(options.onHide && (force || !options.onInput) && $.isFunction(options.callback)){
           options.callback.call(null, curValue, data);
         }
@@ -376,10 +399,10 @@ if (typeof jQuery === 'undefined') {
             var _v = _data[value];
 
             if(options.extraDataName){
-              var name = options.extraDataName[index];
-              $('#' + options.idPrefix + name).remove();
+              var name = options.extraDataName[index] || options.extraData[index];
+              $input.siblings('.sinput-extra[name="'+name+'"]').remove();
               $('<input>').attr({
-                'id': options.idPrefix + name
+                'class': 'sinput-extra'
                 ,'name': name
                 ,'type': 'hidden'
               }).val(_v).insertAfter($input);
@@ -403,8 +426,8 @@ if (typeof jQuery === 'undefined') {
       function clearExtraData(){
         $.each(options.extraData, function(index, value){
           if(options.extraDataName){
-            var name = options.extraDataName[index];
-            $('#' + options.idPrefix + name).remove();
+            var name = options.extraDataName[index] || options.extraData[index];
+            $input.siblings('.sinput-extra[name="'+name+'"]').remove();
           }else{
             $input.removeAttr('data-' + value);
           }
@@ -418,13 +441,22 @@ if (typeof jQuery === 'undefined') {
           skipMouseEvent = false;
           return;
         }
-        $(this).addClass('hover').css({
-          color: options.hoverColor,
-          background: options.hoverBackground
-        }).siblings().removeClass('hover').css({
-          color: '',
-          background: ''          
-        });
+
+        var $hover = $dropdown.find('.hover');
+        var $this = $(this);
+
+        if($this.hasClass('hover')){
+          return;
+        }else{
+          $hover.removeClass('hover').css({
+            color: '',
+            background: ''
+          });
+          $this.addClass('hover').css({
+            color: options.hoverColor,
+            background: options.hoverBackground
+          });
+        }
       });
 
       // $input.add($dropdown)
@@ -449,8 +481,9 @@ if (typeof jQuery === 'undefined') {
             if(options.preventKeyEvent){
               e.preventDefault();
             }
-            if(isDropdownHidden){              
+            if(isDropdownHidden){
               $dropdown.show();
+              setDropdownPostion();
               renderDropdown(originalData, $input.val());
             }else{
               moveItemUpOrDown();
@@ -459,7 +492,7 @@ if (typeof jQuery === 'undefined') {
           }
           case keys.enter: {
             if(isDropdownHidden){
-              $input.trigger('focus.sinput');
+              $input.trigger('click.sinput');
             }else{
               $dropdown.find('.hover').trigger('click');
             }
@@ -533,57 +566,60 @@ if (typeof jQuery === 'undefined') {
 
       function renderDropdown(items, filterText){
 
-        if(_error){
-          $message.show();
+        if(_message){
+          showMessage(_message);
           return;
         }
 
-        $message.empty().hide().siblings().remove();
+        showMessage('');
 
         searchResultData = searchItems(items, filterText);
 
         if(searchResultData.length<1){
-          $message
-            .html(!$input.val() ? '暂无数据' : options.add ? '没有该数据，可添加' : '没有该数据')
-            .show();
+          $message.html(!$input.val() ? '暂无数据' : options.add ? '没有该数据，可添加' : '没有该数据');
           return;
         }
 
+        var ret = [];
+
         $.each(searchResultData, function(index, item){
 
-          var $item = $('<div>');
+          var text = item[options.text];
+          var str = '<div class="';
+          var klass = 'sinput-item' + (index === 0 ? ' hover' : '');
+          var cssText = [];
+
+          cssText.push('padding: ' + options.padding);
           if(index === 0){
-            $item.addClass('hover').css({
-              color: options.hoverColor,
-              background: options.hoverBackground
-            });
-          }
-          $item.addClass('sinput-item')
-            .html(function(){
-              var text = item[options.text];
-              if(options.highlight && filterText){
-                var reg = new RegExp(filterText, 'g');
-                text = text.replace(reg, function(a){
-                  return '<b>' + a + '</b>';
-                });
-              }
-              return text;
-            })
-            .css({
-              padding: options.padding
-            })
-            .appendTo($dropdown);
-          if(options.title){
-            $item.attr('title', item[options.text]);
+            cssText.push('color: ' + options.hoverColor);
+            cssText.push('background: ' + options.hoverBackground);
           }
           if(options.ellipsis){
-            $item.css({
-              'white-space': 'nowrap',
-              'overflow': 'hidden',
-              'text-overflow': 'ellipsis'
+            cssText.push('white-space: nowrap');
+            cssText.push('overflow: hidden');
+            cssText.push('text-overflow: ellipsis');
+          }
+
+          str += klass + '"';
+          str += ' style="' + cssText.join(';') + '"';
+
+          if(options.title){
+            str += ' title="' + item[options.text] + '"';
+          }
+
+          if(options.highlight && filterText){
+            var reg = new RegExp(filterText, 'g');
+            text = text.replace(reg, function(a){
+              return '<b>' + a + '</b>';
             });
           }
+
+          str += '>' + text + '</div>';
+          ret.push(str);
         });
+
+        hideMessage();
+        $dropdown.html(ret.join(''));
       }
 
       function searchItems(items, value){

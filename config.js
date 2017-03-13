@@ -1,12 +1,8 @@
 // set default
 +function(){
-  var token = JSON.parse((sessionStorage && sessionStorage.token));
 
-  // 设置默认参数
   $.fn.sinput._default = {
-    headers: {"Authorization": token.token_type + " " + token.access_token},
     preventKeyEvent: true,
-    ajax: true,
     cache: false,
     ellipsis: true,
     zIndex: 2147483646,
@@ -15,6 +11,25 @@
     onInput: true,
     scroller: '.wrapper',
     padding: '2px 5px',
-    hoverBackground: '#1e90ff'
+    hoverBackground: '#1e90ff',
+    __: function(options){
+
+      var token = sessionStorage && sessionStorage.token;
+      var headers = {};
+
+      if(token){
+        token = JSON.parse(token);
+        headers['Authorization'] = token.token_type + ' ' + token.access_token;
+      }
+
+      if(options.dataType.toUpperCase() === 'JSON' && options.type.toUpperCase() === 'POST'){
+        headers['Accept'] = 'application/json';
+        headers['Content-Type'] = 'application/json';
+      }
+
+      options.headers = $.extend({}, options.headers, headers);
+
+      return options;
+    }
   }
 }();
