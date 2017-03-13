@@ -14,7 +14,7 @@ if (typeof jQuery === 'undefined') {
 
     options = $.extend({
       kls: 'sinput',
-      unique: false,
+      unique: true,
       name: '',
       placeholder: '',
       maxLength: 0,
