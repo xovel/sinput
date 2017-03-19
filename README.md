@@ -54,9 +54,7 @@ A search input plugin, based on jQuery.
 1. 将本repo的代码clone至本地： `git clone git@github.com:xovel/sinput.git`
 2. 安装所需依赖： `npm install`
 3. 运行gulp进行文件的提取与打包： `gulp`，生成的文件将会放置在`dist`目录下。
-4. 运行`gulp build`将会从本地的`comment.js`和`config.js`提取相关信息进行文件的生成，其中`comment.js`为注释文件，`config.js`为默认值预设文件。
-
-当然，你也可以根据项目根目录下的`sinput.js`进行相关操作。
+4. 运行`gulp build`将会从`config.js`提取相关信息进行文件的生成，`config.js`为默认值预设文件。
 
 代码的压缩采用`uglifyjs`，压缩后的文件名以`.min`方式追加。
 
@@ -67,6 +65,23 @@ A search input plugin, based on jQuery.
 - [ ] 英文文档
 
 ## History
+
+### 1.0.5
+
+- 添加隐藏参数`matchTrigger`，用于开启在输入时全匹配文本时，是否触发回调函数。无默认值，即默认值为`undefined`
+- 更新：点击回调事件的处理逻辑更新，修复上一个功能带来的回调失效问题
+- 更新：对于添加的额外数据，使用`extraDataName`时，input元素提交附加，后续不再对其进行删除重建的操作
+- 修复：ajax加载数据返回为空时，加载提示信息不会消失的问题
+- ~~修复：IE下placeholder的问题，修复失败，已采取下一条修复方式。~~
+- 修复：IE下由于不明原因自动触发input元素的input事件造成的问题，将`input`事件修改为`keyup`事件
+- 更新：options.init开启时，对下拉框提前渲染
+- 新增：在options.add为真时，当出现可添加提示文字时，点击该文字隐藏下拉并触发回调
+- 更新：隐藏下拉框时，如果已经对元素赋空值，则需要同步重新渲染下拉框
+- 添加隐藏参数`clickLoad`，用于在点击时是否加载全部数据。无默认值，即默认值为`undefined`
+- 更新：渲染下拉框的代码更新，主要用于针对新增参数`clickLoad`的适应性调整
+  - 高亮的处理逻辑更新
+  - 点击时根据高亮的元素进行自动定位
+  - 下拉框内子元素的样式附加逻辑更新，使用直接的字符串拼接
 
 ### 1.0.4
 

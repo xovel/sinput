@@ -452,7 +452,7 @@ if (typeof jQuery === 'undefined') {
       });
 
       // set $message's click event
-      // $message.on('click' ... cannot word because render will remove this event
+      // $message.on('click' ... cannot work because `render` will remove it
       // so just set a class to $message and use event delegate
       if(options.add){
         $dropdown.on('click', '.sinput-message', function(){
