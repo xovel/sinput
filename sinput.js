@@ -1,5 +1,5 @@
 /*!
- * sinput 1.0.4
+ * sinput 1.0.5
  * Copyright 2017 xovel, MIT licensed
  * https://github.com/xovel/sinput
  */
@@ -90,15 +90,131 @@ if (typeof jQuery === 'undefined') {
       down: 40
     }
 
+    // cache body and window
     var $body = $('body');
+    var $window = $(window);
 
+    // set guid to every sinput instance
     $.fn.sinput.guid = $.fn.sinput.guid || 0;
 
     return this.each(function(){
 
       var guid = ++$.fn.sinput.guid;
       var $input = $(this).attr('autocomplete', 'off').data('sinput-guid', guid);
-      var id = $input.attr('id');
+
+      // remove all `.sinput` event ever bind
+      $input.off('.sinput');
+
+      // set max length, if the element has a maxlength attribute already, use the minimal
+      if(options.maxLength){
+        var maxLength = parseInt($input.attr('maxlength'), 10);
+        if(maxLength && maxLength > 0){
+          maxLength = Math.min(maxLength, options.maxLength);
+        }else{
+          maxLength = options.maxLength;
+        }
+        $input.attr('maxlength', maxLength);
+      }
+
+      if(options.name){
+        $input.attr('name', options.name);
+      }
+
+      // --------
+      if(options.placeholder){
+        $input.attr('placeholder', options.placeholder);
+      }
+
+      // init extra data
+      if(options.extraData){
+        var _n = options.extraData.length;
+
+        // set an order to extra data
+        $.each(options.extraData.reverse(), function(index, value){
+          if(options.extraDataName){
+            var name = options.extraDataName[index] || options.extraData[index];
+            $('<input>').attr({
+              'class': 'sinput-extra'
+              ,'name': name
+              ,'type': 'hidden'
+              ,'data-extra-order': _n - index
+            }).val('').insertAfter($input);
+          }else{
+            // avoid to get an undefined value
+            $input.attr('data-' + value, '');
+          }
+        });
+      }
+
+      // input event has some quirk problems within IE, e.g placeholder/trigger automatically
+      // Change the event type to keyup to fix this problem.
+      var inputEvent = 'ActiveXObject' in window ? 'keyup.sinput' : 'input.sinput';
+
+      // // fix IE placeholder's bug
+      // var placeholder = $input.attr('placeholder');
+      // var $placeholder = $('<div>');
+
+      // if('ActiveXObject' in window){
+      //   placeholder = options.placeholder || placeholder;
+
+      //   if(placeholder){
+      //     $input.removeAttr('placeholder');
+
+      //     $placeholder.html(placeholder).css({
+      //       position: 'absolute',
+      //       background: 'transparent',
+      //       boxSizing: 'border-box',
+      //       color: '#a9a9a9', // darkgray
+      //       overflow: 'hidden',
+      //       paddingLeft: '5px',
+      //       fontSize: options.fontSize
+      //     }).appendTo($body).on('click', function(){
+      //       $placeholder.hide();
+      //       $input.trigger('click.sinput').trigger('focus');
+      //     });
+
+      //     // I just can't understand the 8px
+      //     setPlaceholderPostion(-8);
+
+      //     // extra event
+      //     $input.on('blur.sinput.placeholder', function(){
+      //       if($.trim($input.val()) === ''){
+      //         $placeholder.show();
+      //       }
+      //     }).on('focus.sinput.placeholder'
+      //     + ' input.sinput.placeholder'
+      //     + ' change.sinput.placeholder', function(){
+      //       $placeholder.hide();
+      //     });
+
+      //     // resize also
+      //     $(window).on('resize.sinput.placeholder', function(){
+      //       setPlaceholderPostion();
+      //     });
+
+      //     // scroller also
+      //     $(options.scroller).on('scroll.sinput.placeholder', function(){
+      //       setPlaceholderPostion();
+      //     });
+      //   }
+      // }else{
+
+      // }
+
+      // function setPlaceholderPostion(fixLeft){
+      //   var position = $input.offset();
+      //   var height = $input.outerHeight();
+      //   var width = $input.outerWidth();
+
+      //   $placeholder.css({
+      //     width: width,
+      //     height: height,
+      //     lineHeight: height + 'px',
+      //     left: position.left + (fixLeft || 0),
+      //     top: position.top
+      //   });
+      // }
+      // //--------- placeholder fixed
 
       var $dropdown = $('<div>')
         .addClass(options.kls)
@@ -121,27 +237,11 @@ if (typeof jQuery === 'undefined') {
           display: 'none'
         });
 
+      var id = $input.attr('id');
       if(options.unique){
         id = 'sinput-dropdown-' + (id ? id : guid);
         $('#' + id).remove();
         $dropdown.attr('id', id);
-      }
-
-      if(options.name){
-        $input.attr('name', options.name);
-      }
-      if(options.placeholder){
-        $input.attr('placeholder', options.placeholder);
-      }
-
-      if(options.maxLength){
-        var maxLength = parseInt($input.attr('maxlength'), 10);
-        if(maxLength && maxLength > 0){
-          maxLength = Math.min(maxLength, options.maxLength);
-        }else{
-          maxLength = options.maxLength;
-        }
-        $input.attr('maxlength', maxLength);
       }
 
       if(options.zIndex){
@@ -158,20 +258,18 @@ if (typeof jQuery === 'undefined') {
       var originalData = [];
       var searchResultData = [];
 
-      if(options.url){
-        if(options.init){
-          loadAjaxData('', function(){
-            _init = true;
-          });
-        }
+      if(options.init && options.url){
+        loadAjaxData('', function(){
+          _init = true;
+          renderDropdown();
+        });
       }else{
         originalData = parseData(options.data);
-        renderDropdown(originalData);
+        renderDropdown();
       }
 
       function loadAjaxData(text, callback){
 
-        // ajax dealer
         var type = options.type;
         var url = options.url;
         var dataType = options.dataType;
@@ -215,21 +313,22 @@ if (typeof jQuery === 'undefined') {
 
             if($.type(list) !== 'array'){
               _message = '数据类型错误，请检查相关配置';
+              showMessage(_message);
               return false;
             }
 
             if(list.length < 1){
               _message = !text ? '暂无数据' : options.add ? '没有该数据，可添加' : '没有该数据';
+              showMessage(_message);
             }else{
               originalData = parseData(list);
 
               callback();
-
-              renderDropdown(originalData, options.searchForce ? text : '');
             }
           },
           error: function(){
             _message = '网络异常，请稍后再试';
+            $message.html(_message);
           }
         });
       }
@@ -265,8 +364,6 @@ if (typeof jQuery === 'undefined') {
         });
       }
 
-      $input.off('.sinput');
-
       $input.on('click.sinput', function(e){
 
         if($dropdown.is(':visible')){
@@ -275,52 +372,47 @@ if (typeof jQuery === 'undefined') {
 
         $dropdown.show();
         setDropdownPostion();
-        
+
         var value = $.trim($(this).val());
 
         if(_init && !value){
           _init = false;
-          $dropdown.show();
         }else{
-          if(options.init && !value){
-            $dropdown.show();
-          }else{
+          if(!options.init || !!value){
             if(options.url && !options.cache){
-              loadAjaxData(value, function(){
-                hideMessage();
+              loadAjaxData(options.clickLoad ? '' : value, function(){
+                options.clickLoad ? renderDropdown('', value) : renderDropdown(options.searchForce ? value : '', value);
               });
             }else{
-              renderDropdown(originalData, value);
+              options.clickLoad ? renderDropdown('', value) : renderDropdown(value);
             }
           }
         }
 
-      }).on('input.sinput', function(){
+      }).on(inputEvent, function(){
 
         var value = $(this).val();
         var force;
 
         clearExtraData();
-        $dropdown.show();
-
-        showMessage('');
+        $dropdown.empty().show();
 
         if(options.maxLength && value.length > maxLength){
-          $message.html('输入文本已超出最大长度');
+          $message.html('输入文本已超出最大长度').show();
           return;
         }
 
         force = value === '' ? options.emptyTrigger : options.forceTrigger;
 
         value = $.trim(value);
-        
+
         if(options.url && !options.cache){
           loadAjaxData(value, function(){
-            hideMessage();
+            renderDropdown(value);
             setExtraData(value, options.onInput, force);
           });
         }else{
-          renderDropdown(originalData, value);
+          renderDropdown(value);
           setExtraData(value, options.onInput, force);
         }
 
@@ -334,7 +426,7 @@ if (typeof jQuery === 'undefined') {
         }
       });
 
-      $(window).on('resize.sinput.s' + guid, function(){
+      $window.on('resize.sinput.s' + guid, function(){
         setDropdownPostion();
       });
 
@@ -381,6 +473,7 @@ if (typeof jQuery === 'undefined') {
           force = true;
           curValue = '';
           $input.val('');
+          renderDropdown();
         }
 
         if(options.onHide && (force || !options.onInput) && $.isFunction(options.callback)){
@@ -403,17 +496,16 @@ if (typeof jQuery === 'undefined') {
 
             if(options.extraDataName){
               var name = options.extraDataName[index] || options.extraData[index];
-              $input.siblings('.sinput-extra[name="'+name+'"]').remove();
-              $('<input>').attr({
-                'class': 'sinput-extra'
-                ,'name': name
-                ,'type': 'hidden'
-              }).val(_v).insertAfter($input);
+              $input.siblings('.sinput-extra[name="'+name+'"]').val(_v);
             }else{
               $input.removeAttr('data-' + value);
               $input.attr('data-' + value, _v);
             }
           });
+
+          if(!options.matchTrigger){
+            return;
+          }
         }else{
           if(!noNeedData){
             return;
@@ -430,7 +522,7 @@ if (typeof jQuery === 'undefined') {
         $.each(options.extraData, function(index, value){
           if(options.extraDataName){
             var name = options.extraDataName[index] || options.extraData[index];
-            $input.siblings('.sinput-extra[name="'+name+'"]').remove();
+            $input.siblings('.sinput-extra[name="'+name+'"]').val(''); // do not remove it
           }else{
             $input.removeAttr('data-' + value);
           }
@@ -487,7 +579,7 @@ if (typeof jQuery === 'undefined') {
             if(isDropdownHidden){
               $dropdown.show();
               setDropdownPostion();
-              renderDropdown(originalData, $input.val());
+              renderDropdown($input.val());
             }else{
               moveItemUpOrDown();
             }
@@ -507,7 +599,7 @@ if (typeof jQuery === 'undefined') {
       function moveItemUpOrDown(direction){
         var $currentItem = $dropdown.find('.hover');
         var $destItem;
-        
+
         if(direction){
           $destItem = $currentItem.prev('.sinput-item');
         }else{
@@ -532,7 +624,7 @@ if (typeof jQuery === 'undefined') {
 
       function fixVisible($item, direction){
         var scrollTop = $dropdown.scrollTop();
-        
+
         if(direction){
           var offsetTop = $item.offset().top - $dropdown.offset().top + scrollTop;
 
@@ -567,7 +659,9 @@ if (typeof jQuery === 'undefined') {
         return ret;
       }
 
-      function renderDropdown(items, filterText){
+      function renderDropdown(filterText, defaultHighlightText /* Internal */){
+
+        filterText = $.trim(filterText);
 
         if(_message){
           showMessage(_message);
@@ -576,58 +670,79 @@ if (typeof jQuery === 'undefined') {
 
         showMessage('');
 
-        searchResultData = searchItems(items, filterText);
+        searchResultData = searchItems(originalData, filterText);
 
         if(searchResultData.length<1){
           $message.html(!$input.val() ? '暂无数据' : options.add ? '没有该数据，可添加' : '没有该数据');
           return;
         }
 
+        hideMessage();
+        $dropdown.empty();
+
         var ret = [];
+        var klass = 'sinput-item';
+        var cssText = 'padding:' + options.padding;
+
+        if(options.ellipsis){
+          cssText += '; white-space: nowrap; overflow: hidden; text-overflow: ellipsis';
+        }
+
+        // highlight item
+        var highlightText = filterText || defaultHighlightText;
+        var highlightItemIndex = 0;
+        var highlightFlag = false;
 
         $.each(searchResultData, function(index, item){
 
           var text = item[options.text];
           var str = '<div class="';
-          var klass = 'sinput-item' + (index === 0 ? ' hover' : '');
-          var cssText = [];
 
-          cssText.push('padding: ' + options.padding);
-          if(index === 0){
-            cssText.push('color: ' + options.hoverColor);
-            cssText.push('background: ' + options.hoverBackground);
-          }
-          if(options.ellipsis){
-            cssText.push('white-space: nowrap');
-            cssText.push('overflow: hidden');
-            cssText.push('text-overflow: ellipsis');
+          if(!highlightFlag && highlightText && text.indexOf(highlightText) !== -1){
+            highlightItemIndex = index;
+            highlightFlag = true;
           }
 
           str += klass + '"';
-          str += ' style="' + cssText.join(';') + '"';
+          str += ' style="' + cssText + '"';
 
           if(options.title){
             str += ' title="' + item[options.text] + '"';
           }
 
-          if(options.highlight && filterText){
-            var reg = new RegExp(filterText, 'g');
-            text = text.replace(reg, function(a){
-              return '<b>' + a + '</b>';
-            });
+          if(options.highlight){
+            if(highlightText){
+              var reg = new RegExp(highlightText, 'g');
+              text = text.replace(reg, function(a){
+                return '<b>' + a + '</b>';
+              });
+            }
           }
 
           str += '>' + text + '</div>';
           ret.push(str);
         });
 
-        hideMessage();
+        ret[highlightItemIndex] = ret[highlightItemIndex].replace(
+          'style="',
+          'style="color: ' + options.hoverColor + ';background: ' + options.hoverBackground + ';'
+        ).replace(
+          'class="',
+          'class="hover '
+        );
+
         $dropdown.html(ret.join(''));
+
+        if(highlightItemIndex > 2){
+          var _height = $dropdown.find('.sinput-item').eq(0).outerHeight();
+          var scrollTop = _height * (highlightItemIndex - 2);
+          $dropdown.scrollTop(scrollTop);
+        }
       }
 
       function searchItems(items, value){
         var ret = [];
-        
+
         if(typeof value !== 'string' || value === ''){
           return items;
         }
