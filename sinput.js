@@ -231,6 +231,7 @@ if (typeof jQuery === 'undefined') {
           overflowY: 'auto'
         }).appendTo($body);
       var $message = $('<div>')
+        .addClass('sinput-message')
         .css({
           padding: options.padding,
           fontSize: options.fontSize,
@@ -443,12 +444,27 @@ if (typeof jQuery === 'undefined') {
         var value = $this.text();
         $input.val(value);
 
-        setExtraData(value, options.callback);
+        setExtraData(value, options.callback, null, true);
 
         hideDropdown();
 
         $input.focus();
       });
+
+      // set $message's click event
+      // $message.on('click' ... cannot word because render will remove this event
+      // so just set a class to $message and use event delegate
+      if(options.add){
+        $dropdown.on('click', '.sinput-message', function(){
+          if($message.html().indexOf('可添加')===-1){
+            return;
+          }
+          $dropdown.hide();
+          if($.isFunction(options.callback)){
+            options.callback.call(null, $input.val(), {});
+          }
+        });
+      }
 
       function hideDropdown(isAdd){
 
@@ -481,7 +497,7 @@ if (typeof jQuery === 'undefined') {
         }
       }
 
-      function setExtraData(searchText, hasCallback, noNeedData){
+      function setExtraData(searchText, hasCallback, noNeedData, isClick){
         var _data;
         $.each(searchResultData, function(index, item){
           if(searchText === item[options.text]){
@@ -503,7 +519,7 @@ if (typeof jQuery === 'undefined') {
             }
           });
 
-          if(!options.matchTrigger){
+          if(!options.matchTrigger && !isClick){
             return;
           }
         }else{
