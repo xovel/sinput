@@ -12,7 +12,7 @@ if (typeof jQuery === 'undefined') {
 
   $.fn.sinput = function(options){
 
-    options = $.extend({
+    options = $.extend(true, {
       kls: 'sinput',
       unique: true,
       name: '',
@@ -52,7 +52,19 @@ if (typeof jQuery === 'undefined') {
       stringify: true,
       searchName: '',
       searchParam: {},
-      searchForce: false
+      searchForce: false,
+      i18n: {
+        'default':{
+          maxLength: 'The text is too long.',
+          ajaxLoading: 'Loading data...',
+          typeError: 'Data type error',
+          noResult: 'No result',
+          noSearchResult: 'No result for this',
+          addPrefix: ', ',
+          addText: 'addable',
+          ajaxError: 'Ajax error'
+        }
+      }
     }, $.fn.sinput._default, options);
 
     if(options.extraDataName === true){
@@ -93,6 +105,8 @@ if (typeof jQuery === 'undefined') {
     // cache body and window
     var $body = $('body');
     var $window = $(window);
+
+    var msg = options.i18n[options.lang] || options.i18n['default'];
 
     // set guid to every sinput instance
     $.fn.sinput.guid = $.fn.sinput.guid || 0;
@@ -296,7 +310,7 @@ if (typeof jQuery === 'undefined') {
           data: param,
           dataType: dataType,
           beforeSend: function(){
-            _message = '正在加载数据...';
+            _message = msg.ajaxLoading;
             showMessage(_message);
           },
           success: function(res){
@@ -313,13 +327,13 @@ if (typeof jQuery === 'undefined') {
             }
 
             if($.type(list) !== 'array'){
-              _message = '数据类型错误，请检查相关配置';
+              _message = msg.typeError;
               showMessage(_message);
               return false;
             }
 
             if(list.length < 1){
-              _message = !text ? '暂无数据' : options.add ? '没有该数据，可添加' : '没有该数据';
+              _message = !text ? msg.noResult : options.add ? msg.noSearchResult + msg.addPrefix + msg.addText : msg.noSearchResult;
               showMessage(_message);
             }else{
               originalData = parseData(list);
@@ -328,7 +342,7 @@ if (typeof jQuery === 'undefined') {
             }
           },
           error: function(){
-            _message = '网络异常，请稍后再试';
+            _message = msg.ajaxError;
             $message.html(_message);
           }
         });
@@ -376,18 +390,16 @@ if (typeof jQuery === 'undefined') {
 
         var value = $.trim($(this).val());
 
-        if(_init && !value){
+        if(_init){
           _init = false;
         }else{
-          if(!options.init || !!value){
-            if(options.url && !options.cache){
-              loadAjaxData(options.clickLoad ? '' : value, function(){
-                options.clickLoad ? renderDropdown('', value) : renderDropdown(options.searchForce ? value : '', value);
-              });
-            }else{
-              options.clickLoad ? renderDropdown('', value) : renderDropdown(value);
-            }
-          }
+          if(options.url && !options.cache){
+            loadAjaxData(options.clickLoad ? '' : value, function(){
+              options.clickLoad ? renderDropdown('', value) : renderDropdown(options.searchForce ? value : '', value);
+            });
+          }else{
+            options.clickLoad ? renderDropdown('', value) : renderDropdown(value);
+          }          
         }
 
       }).on(inputEvent, function(){
@@ -399,7 +411,7 @@ if (typeof jQuery === 'undefined') {
         $dropdown.empty().show();
 
         if(options.maxLength && value.length > maxLength){
-          $message.html('输入文本已超出最大长度').show();
+          $message.html(msg.maxLength).show();
           return;
         }
 
@@ -456,7 +468,7 @@ if (typeof jQuery === 'undefined') {
       // so just set a class to $message and use event delegate
       if(options.add){
         $dropdown.on('click', '.sinput-message', function(){
-          if($message.html().indexOf('可添加')===-1){
+          if($message.html().indexOf(msg.addText)===-1){
             return;
           }
           $dropdown.hide();
@@ -689,7 +701,7 @@ if (typeof jQuery === 'undefined') {
         searchResultData = searchItems(originalData, filterText);
 
         if(searchResultData.length<1){
-          $message.html(!$input.val() ? '暂无数据' : options.add ? '没有该数据，可添加' : '没有该数据');
+          $message.html(!$input.val() ? msg.noResult : options.add ? msg.noSearchResult + msg.addPrefix + msg.addText : msg.noSearchResult);
           return;
         }
 
