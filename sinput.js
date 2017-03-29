@@ -60,8 +60,7 @@ if (typeof jQuery === 'undefined') {
           typeError: 'Data type error',
           noResult: 'No result',
           noSearchResult: 'No result for this',
-          addPrefix: ', ',
-          addText: 'addable',
+          addText: 'No result for this, addable',
           ajaxError: 'Ajax error'
         }
       }
@@ -265,7 +264,7 @@ if (typeof jQuery === 'undefined') {
             }
 
             if (list.length < 1) {
-              _message = !text ? msg.noResult : options.add ? msg.noSearchResult + msg.addPrefix + msg.addText : msg.noSearchResult;
+              _message = !text ? msg.noResult : options.add ? msg.addText : msg.noSearchResult;
               showMessage(_message);
             } else {
               originalData = parseData(list);
@@ -400,7 +399,7 @@ if (typeof jQuery === 'undefined') {
       // so just set a class to $message and use event delegate
       if (options.add) {
         $dropdown.on('click', '.sinput-message', function () {
-          if ($message.html().indexOf(msg.addText)===-1) {
+          if ($message.html() !== msg.addText) {
             return;
           }
           $dropdown.hide();
@@ -619,7 +618,7 @@ if (typeof jQuery === 'undefined') {
         return ret;
       }
 
-      function renderDropdown(filterText, defaultHighlightText /* Internal */) {
+      function renderDropdown(filterText, defaultHighlightText) {
 
         filterText = $.trim(filterText);
 
@@ -633,7 +632,7 @@ if (typeof jQuery === 'undefined') {
         searchResultData = searchItems(originalData, filterText);
 
         if (searchResultData.length < 1) {
-          $message.html(!$input.val() ? msg.noResult : options.add ? msg.noSearchResult + msg.addPrefix + msg.addText : msg.noSearchResult);
+          $message.html(!$input.val() ? msg.noResult : options.add ? msg.addText : msg.noSearchResult);
           return;
         }
 
