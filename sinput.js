@@ -138,19 +138,18 @@ if (typeof jQuery === 'undefined') {
         $input.attr('placeholder', options.placeholder);
       }
 
+      // erase pre extra element
+      $input.siblings('.sinput-extra').remove();
+
       // init extra data
       if (options.extraData) {
-        var _n = options.extraData.length;
-
-        // set an order to extra data
-        $.each(options.extraData.reverse(), function (index, value) {
+        $.each(options.extraData, function (index, value) {
           if (options.extraDataName) {
             var name = options.extraDataName[index] || options.extraData[index];
             $('<input>').attr({
-              'class': 'sinput-extra'
-              ,'name': name
-              ,'type': 'hidden'
-              ,'data-extra-order': _n - index
+              'class': 'sinput-extra',
+              'name': name,
+              'type': 'hidden'
             }).val('').insertAfter($input);
           } else {
             // avoid to get an undefined value
