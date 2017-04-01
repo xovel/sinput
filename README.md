@@ -9,13 +9,13 @@ A search input plugin, based on jQuery.
 ## Options
 
 参数说明：（冒号前为参数名称，后面为默认值）
-- kls: 'sinput' 字符串，**必须**，指定input元素和下拉框的类名。
-- unique: false 布尔值，设定下拉框的唯一性，如果input元素未指定id，则忽略该参数。
+- kls: 'sinput' 字符串，**必须**，指定下拉框的类名。_用于进行鼠标按下事件时判断是否关闭下拉框的依据_
+- unique: true 布尔值，设定下拉框的唯一性，如果input元素未指定id，则使用全局编号。
 - name: '' 字符串，指定input元素的name。
 - placeholder: '' 字符串，指定input元素的placeholder。
 - maxLength: 0 数值，指定input元素的maxlength，如果input元素本身已经设定了maxlength，则取两者的最小值。
 - height: 200 数值，**必须**，下拉框的最大高度。
-- fontSize: '12px' 字符串，指定下拉框内各子元素的字体大小。
+- fontSize: '12px' 字符串，指定下拉框的字体大小。
 - border: '1px solid #66afe9' 字符串，指定下拉框的边框样式。
 - background: '#fff' 字符串，指定下拉框的CSS背景。
 - padding: '5px' 字符串，指定下拉框内各子元素的内边距。
@@ -35,19 +35,34 @@ A search input plugin, based on jQuery.
 - callback: null 函数，在点击下拉子元素时触发的回调函数。
 - onHide: false 布尔值，在其它地方按下鼠标时，是否触发callback回调函数。
 - onInput: false 布尔值或函数，在进行搜索时，在出现完全匹配的结果时，触发的回调函数。如果为真并且不为函数，则使用callback回调函数。
+- emptyTrigger: true, 布尔值，输入时，空值是否进行回调的触发。
 - forceTrigger: false 布尔值，在进行搜索时，是否强制进行回调函数的触发。
 - responseReader: 'data' 字符串，ajax获取到的数据的读取器。如果不进行设置，则使用ajax返回的数据。
 - headers: {} 对象，发送ajax请求时的headers值。
 - init: true 布尔值，ajax加载数据时，是否直接进行初始化获取。
-- cache: false 布尔值，是否对ajax结果进行缓存。如果设置为false，则相关数据均会从ajax获取。
+- cache: true 布尔值，是否对ajax结果进行缓存。如果设置为false，则相关数据均会从ajax获取。
 - url: '' 字符串，ajax请求的路径。如果设置了ajax，该值必须指定。
-- urlParse: false 布尔值，是否对url进行解析，提取url中自带的参数。仅对type为post时有效。
-- type: 'get' 字符串，ajax请求的提交类型，一般为get或post。如果设置了ajax，该值必须指定。
+- urlParse: true 布尔值，是否对url进行解析，提取url中自带的参数。仅对type为post时有效。
+- type: 'GET' 字符串，ajax请求的提交类型，一般为get或post。如果设置了ajax，该值必须指定。
 - dataType: 'json' 字符串，ajax请求的datatype值。如果type为post并且dataType为json，则强制添加json的相关的headers。
 - stringify: true 布尔值，ajax请求的type为post时，是否对提交的数据进行字符串转换。
 - searchName: '' 字符串，ajax请求时的搜索字段的名称。如果为指定，则取text参数。
 - searchParam: {} 对象，ajax请求时默认提交的参数。
 - searchForce: false 布尔值，是否对ajax搜索到的数据进行强制性过滤。
+- lang: '' 隐藏参数，指定提示语的语言名称
+- i18n: 设置lang参数对应的各个语种的具体提示语
+
+### options.i18n
+
+默认键值为`default`，如果未对`options.lang`进行指定，或指定的结果无效，都将使用默认的设置。
+
+- maxLength: 输入时当长度超过设置的最大长度时的提示语
+- ajaxLoading: ajax加载的时候的提示语
+- typeError: ajax获取的数据类型不是数组时的提示语
+- noResult: ajax未取到数据时的提示语
+- noSearchResult: 搜索无结果时的提示语
+- addText: 搜索无结果时并且设置了options.add为真时的提示语
+- ajaxError: ajax请求发生错误时的提示语
 
 ## Build
 
@@ -65,6 +80,21 @@ A search input plugin, based on jQuery.
 - [ ] 英文文档
 
 ## History
+
+### 1.0.6
+
+- 参数相关变更
+  - 新增参数`lang`，用于指定多语言
+  - 新增参数`i18n`，同上，具体见options.i18n的说明。  
+- 参数引入方式变更为深复制
+- 代码风格调整，关键字和语句块的关键位置加入空格
+- 更新：初始化时去除可能已经存在的额外数据input元素，避免因为多次加载出现的元素重复情况
+- 修复：删除指定额外input元素的序号指定，以修复多个额外数据的情况下赋值窜线的问题
+- 更新：删除之前对于placeholder做出的代码的注释
+- 更新：删除对于`JSON.stringify`方法的判定，请确保开启该参数时的浏览器环境支持该JSON方法
+- 修复：ajax请求数据时，没有结果或者出现错误时，提示框未更新的问题
+- 更新：设置options.init参数项时的处理逻辑，在单机input元素，直接取消对初始化状态的判定
+- 更新：开启搜索时高亮文本效果时的处理逻辑变更
 
 ### 1.0.5
 

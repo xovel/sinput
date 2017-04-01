@@ -54,7 +54,7 @@ if (typeof jQuery === 'undefined') {
       searchParam: {},
       searchForce: false,
       i18n: {
-        'default':{
+        'default': {
           maxLength: 'The text is too long.',
           ajaxLoading: 'Loading data...',
           typeError: 'Data type error',
