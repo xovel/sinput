@@ -1,5 +1,5 @@
 /*!
- * sinput 1.0.6
+ * sinput 1.0.7
  * Copyright 2017 xovel, MIT licensed
  * https://github.com/xovel/sinput
  */
@@ -38,9 +38,7 @@ if (typeof jQuery === 'undefined') {
       add: false,
       callback: null,
       onHide: false,
-      onInput: false,
       emptyTrigger: true,
-      forceTrigger: false,
       responseReader: 'data',
       headers: {},
       init: true,
@@ -107,9 +105,6 @@ if (typeof jQuery === 'undefined') {
 
     var msg = options.i18n[options.lang] || options.i18n['default'];
 
-    // set guid to every sinput instance
-    $.fn.sinput.guid = $.fn.sinput.guid || 0;
-
     return this.each(function () {
 
       var guid = $.fn.sinput.guid = $.fn.sinput.guid + 1;
@@ -139,7 +134,7 @@ if (typeof jQuery === 'undefined') {
       }
 
       // erase pre extra element
-      $input.siblings('.sinput-extra').remove();
+      $input.nextAll('.sinput-extra').remove();
 
       // init extra data
       if (options.extraData) {
@@ -345,23 +340,19 @@ if (typeof jQuery === 'undefined') {
           return;
         }
 
-        force = value === '' ? options.emptyTrigger : options.forceTrigger;
-
         value = $.trim(value);
 
         if (options.url && !options.cache) {
           loadAjaxData(value, function () {
             renderDropdown(value);
-            setExtraData(value, options.onInput, force);
           });
         } else {
           renderDropdown(value);
-          setExtraData(value, options.onInput, force);
         }
 
       });
 
-      $body.on('mousedown.sinput.s' + guid, function (e) {
+      $body.off('.s' + guid).on('mousedown.sinput.s' + guid, function (e) {
         var $temp = $(e.target).closest('.' + options.kls);
         var isDropdownVisible = $dropdown.is(':visible');
         if (isDropdownVisible && $temp.length < 1) {
@@ -369,11 +360,11 @@ if (typeof jQuery === 'undefined') {
         }
       });
 
-      $window.on('resize.sinput.s' + guid, function () {
+      $window.off('.s' + guid).on('resize.sinput.s' + guid, function () {
         setDropdownPostion();
       });
 
-      $(options.scroller).on('scroll.sinput.s' + guid, function () {
+      $(options.scroller).off('.s' + guid).on('scroll.sinput.s' + guid, function () {
         if ($dropdown.is(':hidden')) {
           return;
         }
@@ -386,7 +377,11 @@ if (typeof jQuery === 'undefined') {
         var value = $this.text();
         $input.val(value);
 
-        setExtraData(value, options.callback, null, true);
+        var _index = $this.attr('data-index');
+
+        setExtraData(_index);
+
+        runCallback(value, searchResultData[_index]);
 
         hideDropdown();
 
@@ -402,51 +397,53 @@ if (typeof jQuery === 'undefined') {
             return;
           }
           $dropdown.hide();
-          if ($.isFunction(options.callback)) {
-            options.callback.call(null, $input.val(), {});
-          }
+          runCallback($input.val(), {});
         });
       }
 
-      function hideDropdown(isAdd) {
+      function hideDropdown(hasOperation) {
 
         $dropdown.hide();
 
-        var data;
-        var curValue = $.trim($input.val());
-        var force = false;
-
-        if(!isAdd || options.add || (curValue === '' && options.emptyTrigger)){
+        if (!hasOperation) {
           return;
         }
+
+        var data;
+        var curValue = $.trim($input.val());
 
         $.each(searchResultData, function (index, item) {
           if (curValue === item[options.text]) {
             data = item;
+            if (options.onHide) {
+              setExtraData(index);
+              runCallback(curValue, data);
+            }
             return false;
           }
         });
 
         if (!data) {
-          force = true;
-          curValue = '';
-          $input.val('');
-          renderDropdown();
-        }
-
-        if (options.onHide && (force || !options.onInput) && $.isFunction(options.callback)) {
-          options.callback.call(null, curValue, data);
+          if (!options.add) {
+            // no match and options.add is false
+            curValue = '';
+            $input.val('');
+            renderDropdown();
+          }
+          if (options.emptyTrigger && curValue === '') {
+            runCallback('', {});
+          }
         }
       }
 
-      function setExtraData(searchText, hasCallback, noNeedData, isClick) {
-        var _data;
-        $.each(searchResultData, function (index, item) {
-          if(searchText === item[options.text]){
-            _data = item;
-            return false;
-          }
-        });
+      function runCallback(value, data) {
+        if ($.isFunction(options.callback)) {
+          options.callback.call($input, value, data); // set scope
+        }
+      }
+
+      function setExtraData(dataIndex) {
+        var _data = searchResultData[+dataIndex];
 
         if (_data) {
           $.each(options.extraData, function (index, value) {
@@ -454,25 +451,12 @@ if (typeof jQuery === 'undefined') {
 
             if (options.extraDataName) {
               var name = options.extraDataName[index] || options.extraData[index];
-              $input.siblings('.sinput-extra[name="'+name+'"]').val(_v);
+              $input.nextAll('.sinput-extra[name="' + name + '"]').val(_v);
             } else {
               $input.removeAttr('data-' + value);
               $input.attr('data-' + value, _v);
             }
           });
-
-          if (!options.matchTrigger && !isClick) {
-            return;
-          }
-        }else{
-          if (!noNeedData) {
-            return;
-          }
-        }
-
-        if (hasCallback) {
-          var fnCallback = $.isFunction(hasCallback) ? hasCallback : $.isFunction(options.callback) ? options.callback : $.noop;
-          fnCallback.call(null, searchText, _data);
         }
       }
 
@@ -480,7 +464,7 @@ if (typeof jQuery === 'undefined') {
         $.each(options.extraData, function (index, value) {
           if (options.extraDataName) {
             var name = options.extraDataName[index] || options.extraData[index];
-            $input.siblings('.sinput-extra[name="'+name+'"]').val(''); // do not remove it
+            $input.nextAll('.sinput-extra[name="' + name + '"]').val(''); // do not remove it
           } else {
             $input.removeAttr('data-' + value);
           }
@@ -490,7 +474,7 @@ if (typeof jQuery === 'undefined') {
       var skipMouseEvent = false;
 
       $dropdown.on('mouseenter', '.sinput-item', function () {
-        if(skipMouseEvent){
+        if (skipMouseEvent) {
           skipMouseEvent = false;
           return;
         }
@@ -544,6 +528,7 @@ if (typeof jQuery === 'undefined') {
             break;
           }
           case keys.enter: {
+            e.preventDefault();
             if (isDropdownHidden) {
               $input.trigger('click.sinput');
             } else {
@@ -628,7 +613,14 @@ if (typeof jQuery === 'undefined') {
 
         showMessage('');
 
-        searchResultData = searchItems(originalData, filterText);
+        searchResultData = $.grep(originalData, function (item) {
+          if (filterText === '') {
+            return true;
+          }
+          if (item[options.text].indexOf(filterText) !== -1) {
+            return true;
+          }
+        });
 
         if (searchResultData.length < 1) {
           $message.html(!$input.val() ? msg.noResult : options.add ? msg.addText : msg.noSearchResult);
@@ -663,6 +655,7 @@ if (typeof jQuery === 'undefined') {
 
           str += klass + '"';
           str += ' style="' + cssText + '"';
+          str += 'data-index=' + index; // data track index
 
           if (options.title) {
             str += ' title="' + item[options.text] + '"';
@@ -696,21 +689,9 @@ if (typeof jQuery === 'undefined') {
         }
       }
 
-      function searchItems(items, value) {
-        var ret = [];
-
-        if (typeof value !== 'string' || value === '') {
-          return items;
-        }
-        $.each(items, function(index, item){
-          if (item[options.text].indexOf(value) !== -1) {
-            ret.push(item);
-          }
-        });
-
-        return ret;
-      }
     });
   }
+
+  $.fn.sinput.guid = 0;
 
 }(jQuery);
