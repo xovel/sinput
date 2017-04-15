@@ -96,6 +96,7 @@ Build an effective plugin to solve some quirk problems in our current system.
 - 更新：下拉框的隐藏逻辑进行大幅度的调整
 - 更新：重写设置额外数据的操作逻辑
 - 更新：下拉框的检索操逻辑作全面调整
+- 更新：阻止键盘回车事件的默认行为
 - 更新：对下拉框子元素添加一个额外属性以标识其序号
 
 ### 1.0.6
