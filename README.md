@@ -2,9 +2,11 @@
 
 A search input plugin, based on jQuery.
 
-## Background
+## Motivation
 
-因项目之前所用到的模糊下拉搜索插件存在的问题较多，修复这些功能造成的代码改动太大，故此考虑重新设计一款插件来实现业务需求。
+Build an effective plugin to solve some quirk problems in our current system.
+
+~~因项目之前所用到的模糊下拉搜索插件存在的问题较多，修复这些功能造成的代码改动太大，故此考虑重新设计一款插件来实现业务需求。~~
 
 ## Options
 
@@ -32,11 +34,10 @@ A search input plugin, based on jQuery.
 - scroller: false _jQuery选择器_，页面滚动时下拉框位置调整，本参数指定触发滚动的元素，默认为false。
 - highlight: false 布尔值，在进行搜索时，是否对匹配的结果进行高亮显示。高亮方式为常规的b标签加粗。
 - add: false 布尔值，如果输入的元素未能完全匹配到结果，是否保留该值。
+- clickLoad: true 布尔值，点击input元素时，是否显示所有数据，如果为false，则对当前文本进行过滤搜索。
 - callback: null 函数，在点击下拉子元素时触发的回调函数。
 - onHide: false 布尔值，在其它地方按下鼠标时，是否触发callback回调函数。
-- onInput: false 布尔值或函数，在进行搜索时，在出现完全匹配的结果时，触发的回调函数。如果为真并且不为函数，则使用callback回调函数。
 - emptyTrigger: true, 布尔值，输入时，空值是否进行回调的触发。
-- forceTrigger: false 布尔值，在进行搜索时，是否强制进行回调函数的触发。
 - responseReader: 'data' 字符串，ajax获取到的数据的读取器。如果不进行设置，则使用ajax返回的数据。
 - headers: {} 对象，发送ajax请求时的headers值。
 - init: true 布尔值，ajax加载数据时，是否直接进行初始化获取。
@@ -44,9 +45,9 @@ A search input plugin, based on jQuery.
 - url: '' 字符串，ajax请求的路径。如果设置了ajax，该值必须指定。
 - urlParse: true 布尔值，是否对url进行解析，提取url中自带的参数。仅对type为post时有效。
 - type: 'GET' 字符串，ajax请求的提交类型，一般为get或post。如果设置了ajax，该值必须指定。
-- dataType: 'json' 字符串，ajax请求的datatype值。如果type为post并且dataType为json，则强制添加json的相关的headers。
+- dataType: 'json' 字符串，ajax请求的datatype值。如果type为post并且dataType为json，将自动添加json的相关的headers。
 - stringify: true 布尔值，ajax请求的type为post时，是否对提交的数据进行字符串转换。
-- searchName: '' 字符串，ajax请求时的搜索字段的名称。如果为指定，则取text参数。
+- searchName: '' 字符串，ajax请求时的搜索字段的名称。如果未指定，则取text参数。
 - searchParam: {} 对象，ajax请求时默认提交的参数。
 - searchForce: false 布尔值，是否对ajax搜索到的数据进行强制性过滤。
 - lang: '' 隐藏参数，指定提示语的语言名称
@@ -79,7 +80,23 @@ A search input plugin, based on jQuery.
 - [ ] 插件文档页面
 - [ ] 英文文档
 
-## History
+## Change Log
+
+### 1.0.7
+
+本版主要解决的问题：文本重名造成的回调函数传参问题。
+
+- 参数相关变更
+  - 删除参数`onInput`，不再对输入做实时的监测触发回调的操作
+  - 删除参数`forceTrigger`，同上
+  - 隐藏参数`clickLoad`设定默认值为`true`
+- 更新：全局唯一标识符指定逻辑更新
+- 更新：额外数据加载的input元素的获取方式变更
+- 更新：初始化时，对body/window/options.scroller元素的操作事件进行重新绑定
+- 更新：下拉框的隐藏逻辑进行大幅度的调整
+- 更新：重写设置额外数据的操作逻辑
+- 更新：下拉框的检索操逻辑作全面调整
+- 更新：对下拉框子元素添加一个额外属性以标识其序号
 
 ### 1.0.6
 

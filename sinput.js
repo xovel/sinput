@@ -36,6 +36,7 @@ if (typeof jQuery === 'undefined') {
       scroller: false,
       highlight: false,
       add: false,
+      clickLoad: true,
       callback: null,
       onHide: false,
       emptyTrigger: true,
