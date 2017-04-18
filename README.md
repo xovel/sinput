@@ -6,8 +6,6 @@ A search input plugin, based on jQuery.
 
 Build an effective plugin to solve some quirk problems in our current system.
 
-~~因项目之前所用到的模糊下拉搜索插件存在的问题较多，修复这些功能造成的代码改动太大，故此考虑重新设计一款插件来实现业务需求。~~
-
 ## Options
 
 参数说明：（冒号前为参数名称，后面为默认值）
@@ -217,39 +215,43 @@ Build an effective plugin to solve some quirk problems in our current system.
 [jQuery API Documentation](http://api.jquery.com/)
 
 - $()
-- $.extend
+- **$.extend**, deep extend
+- $.isFunction
+- $.fn.each
+- $.fn.attr
+- $.fn.data
+- $.fn.nextAll
+- $.each
+- $.fn.val
+- $.fn.insertAfter
+- $.fn.addClass
+- $.fn.css
+- $.fn.appendTo
+- $.fn.remove
+- **$.ajax**
+- $.type
+- $.fn.html
 - $.fn.offset
 - $.fn.outerHeight
 - $.fn.outerWidth
-- $.fn.attr
-- $.fn.css
-- $.fn.hide
 - $.fn.show
-- $.fn.appendTo
-- $.ajax
-- $.fn.html
-- $.fn.on
-- $.fn.off
-- $.type
-- $.isFunction
-- $.fn.text
-- $.fn.val
-- $.fn.find
-- $.fn.removeAttr
-- $.fn.insertAfter
-- $.each
-- $.fn.addClass
-- $.fn.removeClass
 - $.fn.siblings
-- $.fn.trigger
-- $.fn.prev
-- $.fn.next
-- $.fn.scrollTop
-- $.fn.height
-- $.fn.remove
+- $.trim
+- **$.fn.on**
 - $.fn.empty
-- $.fn.closest
+- $.fn.off
+- $.fn.hide
+- $.fn.removeAttr
+- $.fn.find
+- $.fn.removeClass
 - $.fn.is
+- $.fn.hasClass
+- $.fn.trigger
+- $.fn.next
+- $.fn.prev
+- $.fn.scrollTop
+- $.grep
+- $.fn.eq
 
 ## Lisence
 
