@@ -32,14 +32,16 @@ if (typeof jQuery === 'undefined') {
       extraDataName: false,
       preventKeyEvent: false,
       data: [],
+      limit: 0,
       text: 'text',
+      filterEmpty: true,
       scroller: false,
       highlight: false,
       add: false,
       clickLoad: true,
       callback: null,
       onHide: false,
-      emptyTrigger: true,
+      onNoData: true,
       responseReader: 'data',
       headers: {},
       init: true,
@@ -431,8 +433,8 @@ if (typeof jQuery === 'undefined') {
             $input.val('');
             renderDropdown();
           }
-          if (options.emptyTrigger && curValue === '') {
-            runCallback('', {});
+          if (options.onNoData) {
+            runCallback(curValue, {});
           }
         }
       }
@@ -615,6 +617,9 @@ if (typeof jQuery === 'undefined') {
         showMessage('');
 
         searchResultData = $.grep(originalData, function (item) {
+          if (options.filterEmpty && !item[options.text]) {
+            return false;
+          }
           if (filterText === '') {
             return true;
           }
@@ -622,6 +627,10 @@ if (typeof jQuery === 'undefined') {
             return true;
           }
         });
+
+        if (options.limit) {
+          searchResultData = searchResultData.slice(0, +options.limit);
+        }
 
         if (searchResultData.length < 1) {
           $message.html(!$input.val() ? msg.noResult : options.add ? msg.addText : msg.noSearchResult);
