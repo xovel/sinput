@@ -1,5 +1,5 @@
 /*!
- * sinput 1.0.7
+ * sinput 1.0.8
  * Copyright 2017 xovel, MIT licensed
  * https://github.com/xovel/sinput
  */
@@ -41,6 +41,7 @@ if (typeof jQuery === 'undefined') {
       clickLoad: true,
       callback: null,
       onHide: false,
+      onEmpty: false,
       onNoData: true,
       responseReader: 'data',
       headers: {},
@@ -333,7 +334,6 @@ if (typeof jQuery === 'undefined') {
       }).on(inputEvent, function () {
 
         var value = $(this).val();
-        var force;
 
         clearExtraData();
         $dropdown.empty().show();
@@ -351,6 +351,10 @@ if (typeof jQuery === 'undefined') {
           });
         } else {
           renderDropdown(value);
+        }
+
+        if (options.onEmpty && value === '') {
+          runCallback('', {});
         }
 
       });
@@ -665,7 +669,7 @@ if (typeof jQuery === 'undefined') {
 
           str += klass + '"';
           str += ' style="' + cssText + '"';
-          str += 'data-index=' + index; // data track index
+          str += ' data-index=' + index; // data track index
 
           if (options.title) {
             str += ' title="' + item[options.text] + '"';
