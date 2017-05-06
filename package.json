@@ -1,7 +1,7 @@
 {
   "name": "sinput",
   "description": "A search input plugin",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "author": "xovel <xovel@vip.qq.com>",
 
   "main": "sinput.js",

@@ -11,6 +11,8 @@ Build an effective plugin to solve some quirk problems in our current system.
 参数说明：（冒号前为参数名称，后面为默认值）
 - kls: 'sinput' 字符串，**必须**，指定下拉框的类名。_用于进行鼠标按下事件时判断是否关闭下拉框的依据_
 - unique: true 布尔值，设定下拉框的唯一性，如果input元素未指定id，则使用全局编号。
+- limit: 0 数值，限制下拉框的条目数目。
+- filterEmpty: true 布尔值，决定是否对下拉框元素过滤空白值。
 - name: '' 字符串，指定input元素的name。
 - placeholder: '' 字符串，指定input元素的placeholder。
 - maxLength: 0 数值，指定input元素的maxlength，如果input元素本身已经设定了maxlength，则取两者的最小值。
@@ -35,7 +37,8 @@ Build an effective plugin to solve some quirk problems in our current system.
 - clickLoad: true 布尔值，点击input元素时，是否显示所有数据，如果为false，则对当前文本进行过滤搜索。
 - callback: null 函数，在点击下拉子元素时触发的回调函数。
 - onHide: false 布尔值，在其它地方按下鼠标时，是否触发callback回调函数。
-- emptyTrigger: true, 布尔值，输入时，空值是否进行回调的触发。
+- onEmpty: false 布尔值，输入时，空值是否进行回调的触发。
+- onNoData: true 布尔值，隐藏时，是否对无数据的情况进行回调的触发。
 - responseReader: 'data' 字符串，ajax获取到的数据的读取器。如果不进行设置，则使用ajax返回的数据。
 - headers: {} 对象，发送ajax请求时的headers值。
 - init: true 布尔值，ajax加载数据时，是否直接进行初始化获取。
@@ -80,7 +83,18 @@ Build an effective plugin to solve some quirk problems in our current system.
 
 ## Change Log
 
-### 1.0.7
+### v1.0.8
+
+本版为`1.0.x`最后一个版本。
+
+- 参数相关变更
+  - 新增参数`limit`，限制下拉框元素的个数
+  - 新增参数`filterEmpty`，是否对源数据进行空值过滤
+  - 新增参数`onNoData`，决定是否在隐藏时触发回调
+  - 参数`emptyTrigger`更名为`onEmpty`
+- 修复：生成下拉列表的时候一个语法问题
+
+### v1.0.7
 
 本版主要解决的问题：文本重名造成的回调函数传参问题。
 
@@ -97,7 +111,7 @@ Build an effective plugin to solve some quirk problems in our current system.
 - 更新：阻止键盘回车事件的默认行为
 - 更新：对下拉框子元素添加一个额外属性以标识其序号
 
-### 1.0.6
+### v1.0.6
 
 - 参数相关变更
   - 新增参数`lang`，用于指定多语言
@@ -112,7 +126,7 @@ Build an effective plugin to solve some quirk problems in our current system.
 - 更新：设置options.init参数项时的处理逻辑，在单机input元素，直接取消对初始化状态的判定
 - 更新：开启搜索时高亮文本效果时的处理逻辑变更
 
-### 1.0.5
+### v1.0.5
 
 - 添加隐藏参数`matchTrigger`，用于开启在输入时全匹配文本时，是否触发回调函数。无默认值，即默认值为`undefined`
 - 更新：点击回调事件的处理逻辑更新，修复上一个功能带来的回调失效问题
@@ -129,7 +143,7 @@ Build an effective plugin to solve some quirk problems in our current system.
   - 点击时根据高亮的元素进行自动定位
   - 下拉框内子元素的样式附加逻辑更新，使用直接的字符串拼接
 
-### 1.0.4
+### v1.0.4
 
 - 参数相关变更
  - 删除参数`ajax`，通过指定`url`参数，直接开启ajax功能
@@ -155,7 +169,7 @@ Build an effective plugin to solve some quirk problems in our current system.
 - 更新：下拉框的`mouseenter`事件处理逻辑更新，提升操作速度
 - 更新：渲染下拉框的下拉元素时的处理逻辑更新，大幅度提升多数据时的渲染速度
 
-### 1.0.3
+### v1.0.3
 
 - 参数相关变更
   - 新增参数`background`，指定下拉框的CSS背景
@@ -166,7 +180,7 @@ Build an effective plugin to solve some quirk problems in our current system.
 - 修复：获取input元素的位置时方法更改，避免定位问题造成的下拉框错位
 - 新增：页面滚动时下拉框位置调整，参数项为`scroller`，默认为fasle，不做触发
 
-### 1.0.2
+### v1.0.2
 
 - 参数相关变更
   - `unique`默认值由true变更为false
@@ -181,7 +195,7 @@ Build an effective plugin to solve some quirk problems in our current system.
 - 更新：设置额外参数的相关操作修改，不再进行DOM的获取以提升处理速度
 - 优化：input键盘操作时，ESC和TAB按下时，如果下拉框已经隐藏则不做处理
 
-### 1.0.1
+### v1.0.1
 
 - 参数相关变更
   - 新增参数`unique`，对下拉框进行可能的唯一性确认
@@ -201,7 +215,7 @@ Build an effective plugin to solve some quirk problems in our current system.
 - 优化当input点击时，下拉框已经弹出时的操作
 - 对input的相关事件添加命名空间，避免重新调用本插件时可能出现的多个事件响应
 
-### 1.0.0
+### v1.0.0
 
 **初代版本发布**
 
