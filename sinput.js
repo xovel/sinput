@@ -38,7 +38,7 @@ if (typeof jQuery === 'undefined') {
       scroller: false,
       highlight: false,
       add: false,
-      clickLoad: true,
+      clickLoad: false,
       callback: null,
       onHide: false,
       onEmpty: false,
@@ -91,6 +91,10 @@ if (typeof jQuery === 'undefined') {
       // Internal usage
       // do this only you know what it means
       options = options.__(options);
+    }
+
+    if (!options.searchName) {
+      options.searchName = options.text;
     }
 
     var keys = {
