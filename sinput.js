@@ -601,6 +601,7 @@ if (typeof jQuery === 'undefined') {
         var ret = [];
         var temp = {};
         $.each(data, function(index, value){
+          temp = {};
           if (typeof value === 'string') {
             temp[options.text] = value;
           } else {
