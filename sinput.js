@@ -599,9 +599,8 @@ if (typeof jQuery === 'undefined') {
 
       function parseData(data) {
         var ret = [];
-        var temp = {};
         $.each(data, function(index, value){
-          temp = {};
+          var temp = {};
           if (typeof value === 'string') {
             temp[options.text] = value;
           } else {
