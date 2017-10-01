@@ -75,17 +75,15 @@ Build an effective plugin to solve some quirk problems in our current system.
 
 代码的压缩采用`uglifyjs`，压缩后的文件名以`.min`方式追加。
 
-## TODO
-
-- [ ] ajax数据过多时的分页操作
-- [ ] 插件文档页面
-- [ ] 英文文档
-
 ## Change Log
 
-### v1.0.8
+### v1.0.9
 
-本版为`1.0.x`最后一个版本。
+- 修复 `parseData` 读取数组数据的问题
+- 参数 `searchName` 默认为 `text`
+- 参数 `clickLoad` 默认值修改为 `false`
+
+### v1.0.8
 
 - 参数相关变更
   - 新增参数`limit`，限制下拉框元素的个数
@@ -115,7 +113,7 @@ Build an effective plugin to solve some quirk problems in our current system.
 
 - 参数相关变更
   - 新增参数`lang`，用于指定多语言
-  - 新增参数`i18n`，同上，具体见options.i18n的说明。  
+  - 新增参数`i18n`，同上，具体见options.i18n的说明。
 - 参数引入方式变更为深复制
 - 代码风格调整，关键字和语句块的关键位置加入空格
 - 更新：初始化时去除可能已经存在的额外数据input元素，避免因为多次加载出现的元素重复情况
