@@ -1,5 +1,5 @@
 /*!
- * sinput 1.0.8
+ * sinput 1.0.9
  * Copyright 2017 xovel, MIT licensed
  * https://github.com/xovel/sinput
  */
