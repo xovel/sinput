@@ -335,7 +335,12 @@ if (typeof jQuery === 'undefined') {
           }
         }
 
-      }).on(inputEvent, function () {
+      }).on(inputEvent, function (e) {
+
+        // fix another quirk problem in IE...
+        if (inputEvent === 'keyup.sinput' && !e.keyCode) {
+          return;
+        }
 
         var value = $(this).val();
 
