@@ -1,15 +1,13 @@
 {
   "name": "sinput",
   "description": "A search input plugin",
-  "version": "1.0.9",
+  "version": "2.0.0",
   "author": "xovel <xovel@vip.qq.com>",
-
-  "main": "sinput.js",
+  "main": "src/sinput.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/xovel/sinput.git"
   },
-
   "homepage": "https://github.com/xovel/sinput/",
   "keywords": [
     "sinput",
@@ -17,11 +15,12 @@
     "search"
   ],
   "license": "MIT",
-
   "devDependencies": {
     "gulp": "^3.9.1",
     "gulp-clean": "^0.3.2",
-    "gulp-uglify": "^2.0.1",
-    "gulp-concat": "^2.6.1"
+    "gulp-clean-css": "^3.9.0",
+    "gulp-concat": "^2.6.1",
+    "gulp-less": "^3.3.2",
+    "gulp-uglify": "^2.1.2"
   }
 }
